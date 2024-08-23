@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,5 +23,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        DB::listen(function ($query) {
+            info($query->sql, $query->bindings, $query->time);
+        });
+        //
+
+        LazyCollection::macro('transpose', function () {
+            $items = array_map(function (...$items) {
+                return $items;
+            }, ...$this->values());
+
+            return new static($items);
+        });
     }
 }
