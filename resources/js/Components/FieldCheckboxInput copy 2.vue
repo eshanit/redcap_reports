@@ -82,7 +82,6 @@ watch(props.modelValue, (newValue) => {
           name: option.descrip,
           event_id: option.event_id
         }))" class="ml-4">
-        
           <ProcessSelectDropDowns :selected-field-metadata="fieldNameMetadata" :event="option" @update:query="query => updateQuery(query, { event_id: option.event_id })" />
         </div>
       </div>
