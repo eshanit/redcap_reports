@@ -39,6 +39,8 @@ watch(() => props.selectedDataFields, (newFields) => {
 
 <template>
   <div v-if="selectedDataFields">
+    {{  selectedDataFields }}
+    {{localStorageState.selectedEvents}}
     <div class="p-20">
       <div class="pb-5 text-xl font-semibold text-orange-500 border-b">
         2. Select the Events for the field names
