@@ -61,9 +61,51 @@ const updateQuery = (property, value, item) => {
   const newValue = [...props.modelValue];
   const selectedEvent = newValue.find(i => i.event_id === item.event_id);
   if (selectedEvent) {
+    if (property == 'operator') {
+      console.log('select:', selectedEvent.query[property])
+      selectedEvent.query.collection = [{
+        min: 0,
+        max: 0,
+      }];
+      selectedEvent.query[property] = value;
+    }
     selectedEvent.query[property] = value;
   }
   emit('update:modelValue', newValue);
+};
+
+///
+
+const updateInputQuery = (key, value, option) => {
+  const item = props.modelValue.find(item => item.event_id === option.event_id);
+  if (item) {
+    if (!Array.isArray(item.query[key])) {
+      item.query[key] = [];
+    }
+    // Replace the value in the collection array
+    item.query[key] = [value]; // Ensure the value is a number and replace the array
+  }
+};
+
+//
+const updateInputBetweenQuery = (key, value, option, pointer) => {
+  const item = props.modelValue.find(item => item.event_id === option.event_id);
+  console.log('pointer:', pointer);
+  console.log('item:', item);
+  if (item) {
+    if (!Array.isArray(item.query[key])) {
+      item.query[key] = [{
+        [pointer]: 0
+      }];
+    }
+    // Replace the value in the collection array
+    if (pointer == 'min') {
+      item.query[key][0].min = value; // Ensure the value is a number and replace the array
+    } else {
+      item.query[key][0].max = value;
+    }
+
+  }
 };
 
 /*
@@ -99,7 +141,7 @@ const operatorOptions = [
     value: '>'
   },
   {
-    name: 'Greater Than or Equal to (>)',
+    name: 'Greater Than or Equal to (>=)',
     value: '>='
   },
   {
@@ -107,7 +149,7 @@ const operatorOptions = [
     value: '<'
   },
   {
-    name: 'Less than or equal to (>)',
+    name: 'Less than or equal to (<=)',
     value: '<='
   },
   {
@@ -119,10 +161,13 @@ const operatorOptions = [
     value: 'BETWEEN'
   },
   {
+    name: 'Contains',
+    value: 'LIKE'
+  },
+  {
     name: 'OR',
     value: 'OR'
   },
-  ,
   {
     name: 'AND',
     value: 'AND'
@@ -238,21 +283,228 @@ const truefalseOptions = [
                 </label>
               </div>
             </div>
-            <div v-else-if="fieldNameMetadata.element_type == 'calc'">
-              <SelectInput :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                @input="updateQuery('operator', $event.target.value, { name: option.descrip, event_id: option.event_id })">
-                <template #options>
-                  <option :value="operator.value" v-for="operator in operatorOptions" class="py-1.5">
-                    <span class="text-sm italic font-thin text-gray-400">
-                      {{ operator.name }}
-                    </span>
-                  </option>
-                </template>
-              </SelectInput>
-              <input ref="input" type="number"
-                class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                :value="modelValue.find(item => item.event_id === option.event_id)?.query.searchkey"
-                @input="updateQuery('searchkey', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+            <div class="flex gap-5" v-else-if="fieldNameMetadata.element_type == 'calc'">
+              <div>
+                <SelectInput :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
+                  @input="updateQuery('operator', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                  <template #options>
+                    <option :value="operator.value" v-for="operator in operatorOptions" class="">
+                      <span class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
+                        {{ operator.name }}
+                      </span>
+                    </option>
+                  </template>
+                </SelectInput>
+              </div>
+              <div>
+                <div class="flex gap-5" v-if="modelValue[0].query.operator == 'BETWEEN'">
+                  <div>
+                    <input ref="input" type="number"
+                      class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                      @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id }, 'min')">
+                  </div>
+                  <div class="py-2 ">
+                    AND
+                  </div>
+                  <div>
+                    <input ref="input" type="number"
+                      class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                      @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id }, 'max')">
+                  </div>
+                </div>
+                <div v-else-if="modelValue[0].query.operator == '=' ||
+        modelValue[0].query.operator == '<' ||
+        modelValue[0].query.operator == '<=' ||
+        modelValue[0].query.operator == '>' ||
+        modelValue[0].query.operator == '>=' ||
+        modelValue[0].query.operator == '!='
+        ">
+                  <input ref="input" type="number"
+                    class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                    @input="updateInputQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                </div>
+                <div v-else>
+                  The query <span class="italic font-light text-orange-500"> {{ modelValue[0].query.operator }} </span>
+                  is not
+                  applicable to this field, please choose another.
+                </div>
+              </div>
+
+            </div>
+            <div v-else-if="fieldNameMetadata.element_type == 'text'">
+              <!--if type == text but it has a validation min and a max-->
+              <div v-if="fieldNameMetadata.element_validation_min || fieldNameMetadata.element_validation_max">
+                <div class="flex gap-5">
+                  <div>
+                    <SelectInput :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
+                      @input="updateQuery('operator', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                      <template #options>
+                        <option :value="operator.value" v-for="operator in operatorOptions" class="">
+                          <span class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
+                            {{ operator.name }}
+                          </span>
+                        </option>
+                      </template>
+                    </SelectInput>
+                  </div>
+                  <div>
+                    <div class="flex gap-5" v-if="modelValue[0].query.operator == 'BETWEEN'">
+                      <div>
+                        <input ref="input" type="number"
+                          class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                          :min="fieldNameMetadata.element_validation_min"
+                          :max="fieldNameMetadata.element_validation_max"
+                          @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id }, 'min')">
+                      </div>
+                      <div class="py-2 ">
+                        AND
+                      </div>
+                      <div>
+                        <input ref="input" type="number"
+                          class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                          :min="fieldNameMetadata.element_validation_min"
+                          :max="fieldNameMetadata.element_validation_max"
+                          @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id }, 'max')">
+                      </div>
+                    </div>
+                    <div v-else-if="modelValue[0].query.operator == '=' ||
+        modelValue[0].query.operator == '<' ||
+        modelValue[0].query.operator == '<=' ||
+        modelValue[0].query.operator == '>' ||
+        modelValue[0].query.operator == '>=' ||
+        modelValue[0].query.operator == '!='
+        ">
+                      <input ref="input" type="number"
+                        class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                        :min="fieldNameMetadata.element_validation_min" :max="fieldNameMetadata.element_validation_max"
+                        @input="updateInputQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                    </div>
+                    <div v-else>
+                      The query <span class="italic font-light text-orange-500"> {{ modelValue[0].query.operator }}
+                      </span>
+                      is not
+                      applicable to this field, please choose another.
+                    </div>
+                  </div>
+                </div>
+                <div class="py-1.5 text-xs text-gray-500 italicsont-thin">
+                  <div v-if="fieldNameMetadata.element_validation_min && fieldNameMetadata.element_validation_max">
+                    Please note minimum value should be {{ fieldNameMetadata.element_validation_min }} and maximum value
+                    should be {{ fieldNameMetadata.element_validation_max }}
+                  </div>
+                  <div
+                    v-else-if="fieldNameMetadata.element_validation_min && fieldNameMetadata.element_validation_max == null">
+                    Please note minimum value should be {{ fieldNameMetadata.element_validation_min }}
+                  </div>
+                  <div
+                    v-else-if="fieldNameMetadata.element_validation_min == null && fieldNameMetadata.element_validation_max">
+                    Please note should be maximum {{ fieldNameMetadata.element_validation_max }}
+                  </div>
+                </div>
+              </div>
+
+              <!--type = text but validation type is date-->
+
+              <div v-else-if="fieldNameMetadata.element_validation_type == 'date_dmy' ||
+        fieldNameMetadata.element_validation_type == 'date_dym' ||
+        fieldNameMetadata.element_validation_type == 'date_mdy' ||
+        fieldNameMetadata.element_validation_type == 'date_myd' ||
+        fieldNameMetadata.element_validation_type == 'date_ydm' ||
+        fieldNameMetadata.element_validation_type == 'date_ymd'
+        ">
+                <div class="flex gap-5">
+                  <div>
+                    <SelectInput :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
+                      @input="updateQuery('operator', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                      <template #options>
+                        <option :value="operator.value" v-for="operator in operatorOptions" class="">
+                          <span class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
+                            {{ operator.name }}
+                          </span>
+                        </option>
+                      </template>
+                    </SelectInput>
+                  </div>
+                  <div>
+                    <div class="flex gap-5" v-if="modelValue[0].query.operator == 'BETWEEN'">
+                      <div>
+                        <input ref="input" type="date"
+                          class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                          @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id }, 'min')">
+                      </div>
+                      <div class="py-2 ">
+                        AND
+                      </div>
+                      <div>
+                        <input ref="input" type="date"
+                          class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                          @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id }, 'max')">
+                      </div>
+                    </div>
+                    <div v-else-if="modelValue[0].query.operator == '=' ||
+        modelValue[0].query.operator == '<' ||
+        modelValue[0].query.operator == '<=' ||
+        modelValue[0].query.operator == '>' ||
+        modelValue[0].query.operator == '>=' ||
+        modelValue[0].query.operator == '!='
+        ">
+                      <input ref="input" type="date"
+                        class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                        :min="fieldNameMetadata.element_validation_min" :max="fieldNameMetadata.element_validation_max"
+                        @input="updateInputQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                    </div>
+                    <div v-else>
+                      The query <span class="italic font-light text-orange-500"> {{ modelValue[0].query.operator }}
+                      </span>
+                      is not
+                      applicable to this field, please choose another.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div v-else>
+                <div class="flex gap-5">
+                  <div>
+                    <SelectInput :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
+                      @input="updateQuery('operator', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                      <template #options>
+                        <option :value="operator.value" v-for="operator in operatorOptions" class="">
+                          <span class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
+                            {{ operator.name }}
+                          </span>
+                        </option>
+                      </template>
+                    </SelectInput>
+                  </div>
+                  <div v-if="modelValue[0].query.operator == 'LIKE'">
+                    <input ref="input" type="text"
+                        class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                        :min="fieldNameMetadata.element_validation_min" :max="fieldNameMetadata.element_validation_max"
+                        @input="updateInputQuery('collection', $event.target.value, { name: option.descrip, event_id: option.event_id })">
+                  </div>
+                  <div v-else>
+                    The query <span class="italic font-light text-orange-500"> {{ modelValue[0].query.operator }}
+                      </span>
+                      is not
+                      applicable to this field, please choose another. We suggest for this field type, to use <span class="italic font-light text-orange-500"> Contains
+                      </span> to search the column for text which contains the text you entered.
+                  </div>
+                  
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

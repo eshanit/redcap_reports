@@ -38,21 +38,18 @@ watch(() => props.selectedDataFields, (newFields) => {
 </script>
 
 <template>
-  <div v-if="selectedDataFields">
-    {{  selectedDataFields }}
-    {{localStorageState.selectedEvents}}
-    <div class="p-20">
-      <div class="pb-5 text-xl font-semibold text-orange-500 border-b">
-        2. Select the Events for the field names
-      </div>
-      <div v-for="(selectedField, i) in selectedDataFields" :key="i">
-        <div class="py-10 border-b">
-          <div class="py-1 text-lg font-bold">{{ selectedField }}</div>
-          <div class="bg-zinc-100 rounded-lg py-2.5">
-            <div class="px-1.5">
-              <FieldCheckboxInput v-model="localStorageState.selectedEvents[i][selectedField]"
-                :options="fieldEvents[selectedField]" name="example" :field-name-metadata="metadataByField[selectedField][0]" />
-            </div>
+  <div v-if="selectedDataFields.length > 0">
+    {{ selectedDataFields }}
+    {{ localStorageState.selectedEvents }}
+
+    <div v-for="(selectedField, i) in selectedDataFields" :key="i">
+      <div class="py-10 border-b">
+        <div class="py-1 text-lg font-bold">{{ selectedField }}</div>
+        <div class="bg-zinc-100 rounded-lg py-2.5">
+          <div class="px-1.5">
+            <FieldCheckboxInput v-if="fieldEvents[selectedField] && metadataByField[selectedField]"
+              v-model="localStorageState.selectedEvents[i][selectedField]" :options="fieldEvents[selectedField]"
+              name="example" :field-name-metadata="metadataByField[selectedField][0]" />
           </div>
         </div>
       </div>
