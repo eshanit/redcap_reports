@@ -32,21 +32,21 @@ class FieldFilteringController extends Controller
             )
             ->get();
 
-
-        $fieldEvents = ProjectData::select('redcap_data.field_name', 'redcap_data.event_id', 'redcap_events_metadata.descrip')
-            ->join('redcap_events_metadata', 'redcap_data.event_id', '=', 'redcap_events_metadata.event_id')
-            ->where('redcap_data.project_id', $projectId)
-            ->distinct()
-            ->get()
-            ->groupBy('field_name');
+           // dd($metadata->groupBy('field_name')->toArray());
+        // $fieldEvents = ProjectData::select('redcap_data.field_name', 'redcap_data.event_id', 'redcap_events_metadata.descrip')
+        //     ->join('redcap_events_metadata', 'redcap_data.event_id', '=', 'redcap_events_metadata.event_id')
+        //     ->where('redcap_data.project_id', $projectId)
+        //     ->distinct()
+        //     ->get()
+        //     ->groupBy('field_name');
             
 
         // $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
 
 
-        return Inertia::render('Data/Filtering', [
+        return Inertia::render('Data/Filteringv2', [
             'project' => $project,
-            'fieldEvents' => $fieldEvents,
+            'fieldEvents' => [],
             'metadata' => $metadata,
             'metadataByField' => $metadata->groupBy('field_name')
         ]);

@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { useStorage, useDropZone } from '@vueuse/core';
+import { useDropZone } from '@vueuse/core';
 import Draggable from 'vuedraggable/src/vuedraggable';
 import { computed, ref } from 'vue';
-import formatQueryObjectIntoArray from '@/Utilities/formatQueryObjectIntoArray';
+import transformQueryArray from '@/Utilities/transformQueryArray';
+
 import handleQueryArrays from '@/Utilities/handleQueryArrays';
 import WarningOutlineButton from '@/Components/WarningOutlineButton.vue';
+
+const props = defineProps<{
+  selectedData: any
+}>()
 
 interface QueryItem {
   field_name: string;
@@ -18,21 +23,9 @@ interface QueryItem {
 
 const queryData = ref<QueryItem[]>([])
 
-// Create a reactive reference to the localStorage data
-const selectedData = useStorage<string | null>('selectedEvents', null);
-
-// Parse the JSON data reactively
-const data = computed(() => {
-  try {
-    return selectedData.value ? JSON.parse(selectedData.value) : null;
-  } catch (e) {
-    console.error('Failed to parse JSON:', e);
-    return null;
-  }
-});
 
 const finalQueryArray = computed(() => {
-  return formatQueryObjectIntoArray(data.value)
+  return transformQueryArray(props.selectedData)
 })
 
 //draggable 
@@ -94,9 +87,11 @@ const postIntesectionArray = (selectedArray: any) => {
 
 <template>
   <div class="p-4">
-    <pre>
+    <!-- <pre>
+      hello
+      {{ selectedData }}
       {{ finalQueryArray }}
-    </pre>
+    </pre> -->
 
     <div v-if="finalQueryArray.length > 0">
       <!-- Header -->
@@ -161,7 +156,7 @@ const postIntesectionArray = (selectedArray: any) => {
           </div>
           <div class="flex justify-end ">
             <div>
-              <WarningOutlineButton @click="postUnionArray(droppedUnionItems,'union')">
+              <WarningOutlineButton @click="postUnionArray(droppedUnionItems, 'union')">
                 Get Data
               </WarningOutlineButton>
             </div>

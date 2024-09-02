@@ -18,6 +18,8 @@ interface TransformedItem {
   event_id: number;
   values: any[];
   operator: string;
+  search?: string;
+  sort?: string;
 }
 
 const  formatQueryObjectIntoArray = (inputObject: { selectedEvents: SelectedEvent[] }): TransformedItem[] => {
@@ -34,6 +36,9 @@ const  formatQueryObjectIntoArray = (inputObject: { selectedEvents: SelectedEven
           event_id: eventData.event_id,
           values: eventData.query.collection,
           operator: eventData.query.operator,
+          search: null,
+          sort: null,
+
         };
         outputArray.push(transformedItem);
       });

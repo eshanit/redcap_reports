@@ -41,6 +41,10 @@ defineExpose({ focus: () => checkboxGroup.value.focus() });
 <template>
 
   <div ref="checkboxGroup" class="flex flex-col">
+    <!-- <div v-for="option in options" :key="option.field_name" :for="option.field_name">
+      {{ option.field_name }}
+    </div> -->
+  
     <div class="grid grid-cols-1 gap-5 pb-5">
       <label v-for="option in options" :key="option.field_name" :for="option.field_name"
         class="flex items-center mb-2 cursor-pointer">

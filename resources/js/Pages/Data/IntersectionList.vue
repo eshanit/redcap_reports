@@ -18,6 +18,7 @@ import { ref, watch } from 'vue';
 import { filter } from 'lodash';
 import Record from '../Reports/Record.vue';
 
+
 interface RecordData {
     [key: string]: {
         [key: string]: string;
@@ -26,6 +27,7 @@ interface RecordData {
 const props = defineProps<{
     records: any,
     'filters': any,
+    'requests': any,
     'project_id': string,
     'field_name': string,
     'value': any,
@@ -34,7 +36,7 @@ const props = defineProps<{
 
 const pseudoFields = {
     record: 'Record',
-    event: 'Event',
+    event_id: 'Event',
     field_name: 'Field Name',
     value: 'Response',
     form_name: 'Form Name',
@@ -59,33 +61,47 @@ const fields = computed(() => {
     return firstRecord ? Object.keys(firstRecord) : [];
 });
 
-const applyFilters = () => {
-    router.get(`/project/${props.project_id}/question/${props.field_name}/response/${props.value}`, props.filters, { preserveState: true });
+const applyFilters = (requestData: any) => {
+    console.log('requestData: ', requestData);
+    router.get(`/project/${props.project_id}/intersection/filtered/query`, requestData, { preserveState: true });
 };
+
+// const sort = (field: any) => {
+//     props.requests.sort = props.requests.sort === field ? `-${field}` : field;
+//     applyFilters();
+// };
+const searchField = ref(null)
+const sortingField = ref(null)
 
 const sort = (field: any) => {
-    props.filters.sort = props.filters.sort === field ? `-${field}` : field;
-    applyFilters();
+    const requestData = []
+     props.requests.forEach((request: any)=>{
+       // request.sort === field ? `-${field}` : field; 
+       sortingField.value = field
+        requestData.push({
+            index: request.index,
+            field_name: request.field_name,
+            event_name: request.event_name,
+            event_id: request.event_id,
+            values: request.values,
+            operator: request.operator,
+            search: searchField.value,
+            sort: sortingField.value
+        })
+        
+     });
+console.log(field,requestData)
+    applyFilters(requestData);
 };
 
-const toggleSort = (field: any) => {
-    if (sortField.value === field) {
-        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
-    } else {
-        sortField.value = field;
-        sortDirection.value = 'asc';
-    }
-    props.filters.value.sort = sortDirection.value === 'asc' ? field : `-${field}`;
-    applyFilters();
-};
+
+
 
 watch(form, throttle(function () {
-    router.get(`/project/${props.project_id}/question/${props.field_name}/response/${props.value}`, pickBy(form.value), { preserveState: true })
+    router.get(`/project/${props.project_id}/intersection/filtered/query`, pickBy(form.value), { preserveState: true })
 }, 150), {
     deep: true
 })
-
-
 
 </script>
 <template>
@@ -125,7 +141,9 @@ watch(form, throttle(function () {
 
         <div class="py-12">
             <div class="max-w-full mx-auto sm:px-6 lg:px-8">
-
+<!-- <pre>
+    {{ props.requests }}
+</pre> -->
                 <div class="overflow-hidden bg-white shadow-xl sm:rounded-lg">
                     <div>
                         <div class="p-20">
@@ -194,11 +212,6 @@ watch(form, throttle(function () {
                                         <td class="border-t">
                                             <div>
                                                 <Link class="btn-indigo" :href="`/project/${project.project_id}/event/${record['event'].id}/respondent/${record['record']}`">
-                                                <!-- <button
-                                                    class="px-4 py-2 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-700">
-                                                    <span>View</span>
-                                                    <span class="hidden md:inline">&nbsp;Project</span>
-                                                </button> -->
                                                 <PrimaryButton>
                                                     Record
                                                 </PrimaryButton>
@@ -219,30 +232,7 @@ watch(form, throttle(function () {
                 </div>
             </div>
         </div>
-        <!-- <div>
-            <table class="w-full table-auto">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-4 py-2">Record</th>
-                        <th v-for="fieldName in Object.keys(records[Object.keys(records)[0]])" :key="fieldName"
-                            class="px-4 py-2">
-                            {{ fieldName }}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(record, recordKey) in records" :key="recordKey" class="border-b">
-                        <td class="px-4 py-2">{{ recordKey }}</td>
-                        <td v-for="(values, fieldName) in record" :key="`${recordKey}-${fieldName}`" class="px-4 py-2">
-                            <template v-for="(value, index) in values" :key="index">
-                                {{ value }}
-                                <br v-if="index < values.length - 1">
-                            </template>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div> -->
+
 
 
     </AppLayout>

@@ -85,8 +85,6 @@ watch(form, throttle(function () {
     deep: true
 })
 
-
-
 </script>
 <template>
   <AppLayout title="Data ">
@@ -131,14 +129,12 @@ watch(form, throttle(function () {
                         <div class="p-20">
                             <div class="overflow-x-auto bg-white rounded-md shadow">
                                 <div class="pb-10 text-lg">
-                                    List of records where the response for question <span
-                                        class="italic text-orange-500">{{
-                        field_name }}</span> was <span class="italic text-orange-500">{{ value }}</span>
+                                    Records
                                 </div>
                                 <div class="flex justify-between mb-6 py-2.5">
-                                    <search-filter v-model="form.search" class="w-full max-w-md mr-1 "
+                                    <!-- <search-filter v-model="form.search" class="w-full max-w-md mr-1 "
                                         search="Search Projects..." @reset="reset">
-                                    </search-filter>
+                                    </search-filter> -->
                                     <div class="px-10 text-3xl" >
                                         <span class="text-teal-500">{{ numberWithSpaces(records.total) }} </span>
                                         <span v-if="records.total == 1">
@@ -153,7 +149,7 @@ watch(form, throttle(function () {
                                 <table class="w-full whitespace-nowrap">
                                     <tr class="font-bold text-left">
 
-                                        <th class="px-6 pt-6 pb-4 cursor-pointer" @click="sort(field)"
+                                        <th class="px-6 pt-6 pb-4 cursor-pointer"
                                             v-for="field in fields" :key="field">
                                             <Dropdown>
                                                 <template #trigger>
@@ -210,8 +206,7 @@ watch(form, throttle(function () {
                                         <td class="px-6 py-4 border-t" colspan="4">No projects found.</td>
                                     </tr>
                                 </table>
-                                <Pagination class="mt-6" :links="records.links" />
-
+                        
                             </div>
                         </div>
 
