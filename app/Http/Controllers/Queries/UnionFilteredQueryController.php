@@ -30,6 +30,8 @@ class UnionFilteredQueryController extends Controller
                 }, function ($query) use ($el) {
                     if ($el['operator'] === 'OR' || $el['operator'] === '=') {
                         return $query->whereIn('value', $el['values']);
+                    } else if ($el['operator'] === 'LIKE'){
+                        return $query->where('value','like', $el['values'][0].'%');
                     } else {
                         return $query->where('value', $el['operator'], $el['values'][0]);
                     }

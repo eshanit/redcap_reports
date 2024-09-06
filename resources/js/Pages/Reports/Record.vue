@@ -2,8 +2,8 @@
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SurveyEvents from '@/Components/Redcap/SurveyEvents.vue';
-import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue' 
-
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
+import WarningOutlineButton from '@/Components/WarningOutlineButton.vue';
 import { Ref, ref } from 'vue';
 
 const surveyData: Ref<any[]> = ref([])
@@ -22,7 +22,6 @@ const emit = defineEmits(['viewEventResponses'])
 const eventfn = (e: string) => {
     surveyData.value = props.respondentData[e]
     selectedEvent.value = e
-
 }
 
 </script>
@@ -40,7 +39,7 @@ const eventfn = (e: string) => {
                 </div>
                 <div class="text-xl font-light leading-tight text-gray-400 hover:text-orange-500">
                     <Link class="btn-indigo" :href="`/project/metadata/${project.project_id}`">
-                        Metadata and Stats
+                    Metadata and Stats
                     </Link>
                 </div>
                 <div class="font-thin text-green-500 ">
@@ -60,9 +59,9 @@ const eventfn = (e: string) => {
             <div class="relative py-12 ">
                 <div class="w-1/5 overflow-y-auto h-[900px]">
                     <div class="">
-                        <h2 class=" text-2xl font-semibold leading-tight text-green-500 pb-2.5 border-b">
-                            Survey Events
-                        </h2>
+                            <h2 class=" text-2xl font-semibold leading-tight text-green-500 pb-2.5 border-b">
+                                Survey Events
+                            </h2>
                     </div>
                     <div class="py-2.5 " v-for="event in Object.keys(respondentData)">
                         <div class="text-center text-xl font-bold bg-white hover:bg-teal-400 py-2.5 rounded-lg cursor-pointer"

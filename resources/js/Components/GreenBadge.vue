@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 
+
 // Define props with types
 interface Props {
     text: any;

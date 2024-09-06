@@ -64,12 +64,13 @@ const instrumentSums = computed(() => {
 })
 
 const fetchRecord = () => {
-    // form.get(router.get('/'), {
-    //     errorBag: 'createTeam',
-    //     preserveScroll: true,
-    // });
     router.get('/project/' + props.metadata[0].project_id + '/record/' + form.recordId)
 };
+
+const trackRecord = () => {
+    router.get('/project/' + props.metadata[0].project_id + '/record/' + form.recordId + '/tracking')
+};
+
 
 </script>
 <template>
@@ -94,7 +95,7 @@ const fetchRecord = () => {
             <div class="flex gap-1 sm:px-6 lg:px-8">
 
                 <div class="flex col-span-6 gap-1 pr-5 sm:col-span-4">
-                    <FormSection @submitted="fetchRecord">
+                    <FormSection @submitted="">
 
                         <template #title>
                             Search Details
@@ -114,9 +115,15 @@ const fetchRecord = () => {
                         </template>
 
                         <template #actions>
-                            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                Fetch
-                            </PrimaryButton>
+                            <div class="flex gap-5">
+                                <WarningOutlineButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing" @click="trackRecord()">
+                                    Track Record
+                                </WarningOutlineButton>
+                                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing" @click="fetchRecord()">
+                                    Fetch Record
+                                </PrimaryButton>
+                            </div>
+
                         </template>
                     </FormSection>
                 </div>

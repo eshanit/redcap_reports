@@ -11,7 +11,8 @@ use App\Http\Controllers\Queries\ProcessFilteredQueryController;
 use App\Http\Controllers\Queries\UnionFilteredQueryController;
 use App\Http\Controllers\Queries\IntersectionFilteredQueryController;
 use App\Http\Controllers\Queries\GetEventsController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\Queries\GetRespondentEventsFieldDataController;
+use App\Http\Controllers\Queries\RepondentRecordTrackingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -19,7 +20,7 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
+        //'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
 });
@@ -45,6 +46,7 @@ Route::middleware([
 
     Route::get('project/{projectId}/search',[ProjectDataReportingController::class, 'filterDashboard'])->name('search-filter');
     Route::get('project/{projectId}/data', [ProjectDataReportingController::class,'dataQuery'])->name('data-query');
+
     //Queries
     Route::get('project/{projectId}/filtering', FieldFilteringController::class)->name('filtering');
     Route::get('project/{projectId}/fieldname/{fieldName}', FieldNameReportController::class)->name('project-item-report');
@@ -53,6 +55,8 @@ Route::middleware([
     Route::get('project/{projectId}/event/{eventId}/respondent/{record}', FieldRecordContainingResponseController::class)->name('data-for-record-survey');
     Route::get('project/{projectId}/process/filtered/query', ProcessFilteredQueryController::class)->name('data-for-record-survey');
     Route::get('project/{projectId}/union/{unionType}/filtered/query', UnionFilteredQueryController::class)->name('union-queries-survey');
-    Route::get('project/{projectId}/intersection/filtered/query', IntersectionFilteredQueryController::class)->name('intersection-queries-survey');
-    Route::get('project/{projectId}/fieldname/{fieldName}/events',GetEventsController::class)->name('events-survey');
+    Route::get('project/{projectId}/intersection/filtered/{type}/query', IntersectionFilteredQueryController::class)->name('intersection-queries-survey');
+    Route::get('project/{projectId}/fieldname/{fieldName}/events',GetEventsController::class)->name('events-survey'); //no view
+    Route::get('project/{projectId}/record/{record}/fieldname/{fieldName}', GetRespondentEventsFieldDataController::class)->name('record-field-project');
+    Route::get('project/{projectId}/record/{recordId}/tracking', RepondentRecordTrackingController::class)->name('record-tracking');
 });

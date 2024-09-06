@@ -2,11 +2,8 @@
 namespace App\Http\Controllers\Queries;
 
 use App\Models\ProjectData;
-use App\Http\Controllers\Controller;
 use App\Models\ProjectEventMetadata;
-use Illuminate\Support\Facades\Redirect;
-use Inertia\Inertia;
-use Inertia\Response;
+use App\Http\Controllers\Controller;
 
 class GetEventsController extends Controller
 {
@@ -21,6 +18,6 @@ class GetEventsController extends Controller
 
         //dd($events);
 
-        return response()->json(['fieldEvents' => $events]);
+        return response()->json(['fieldEvents' => $events],200);
     }
 }

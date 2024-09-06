@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Ref, ref, watch } from 'vue';
 import FieldCheckboxInput from '@/Components/FieldCheckboxInput.vue';
+import FieldCheckboxInputAllEvents from '@/Components/FieldCheckboxInputAllEvents.vue';
 import FilterQueryDefinitionsV2 from '@/Components/Redcap/FilterQueryDefinitionsV2.vue';
-import Checkbox from '@/Components/Checkbox.vue';
+import VueSelect from "vue3-select-component";
 
 const props = defineProps<{
     projectId: number,
@@ -51,33 +52,77 @@ watch(() => props.fields, async (newFields) => {
 
 
 }, { immediate: true }); // Fetch immediately on mount with initial fields
+
+const dataOptions = [
+    {
+        label: 'All Data',
+        value: 'all'
+    },
+    {
+        label: 'Events Based',
+        value: 'events'
+    }
+]
+
+const dataModel = ref('events');
+
+const allData = [
+    {
+        name: 'All Data',
+        event_id: 0
+    }
+]
 </script>
 
 <template>
-    <div v-if="fields.length">
-        <div class="p-5 " v-for="(fieldName, i) in fields" :key="i">
-            <div class="p-5 rounded-lg bg-zinc-100">
-                <div class="py-5 text-lg font-bold text-green-500">{{ fieldName }}</div>
-                <!-- Render the events for each field -->
-                <div v-if="events[fieldName]?.length">
-                    {{ metadataByField[fieldName] }}
-                    <div class="">
-                        <div class="px-1.5">
-                            <FieldCheckboxInput name="fieldName" v-model="selectedEvents[i][fieldName]"
-                                :options="events[fieldName]" :field-name-metadata="metadataByField[fieldName][0]" />
+    <div class="grid grid-cols-2 gap-5">
+        <div v-if="fields.length">
+            <div class="p-5 " v-for="(fieldName, i) in fields" :key="i">
+                <div class="p-5 rounded-lg bg-zinc-100">
+                    <div class="flex justify-between">
+                        <div class="py-5 text-lg font-bold text-green-500">{{ fieldName }}</div>
+                        <div class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <VueSelect v-model="dataModel" :options="dataOptions" placeholder="Select an option" />
                         </div>
-
                     </div>
-                </div>
-                <div v-else>
-                    No events found for this field.
+
+                    <!-- Render the events for each field -->
+                    <div v-if="dataModel == 'events'">
+                        <div v-if="events[fieldName]?.length">
+                            <!-- {{ metadataByField[fieldName] }} -->
+                            <div class="">
+                                <div class="px-1.5">
+                                    <FieldCheckboxInput name="fieldName" v-model="selectedEvents[i][fieldName]"
+                                        :options="events[fieldName]"
+                                        :field-name-metadata="metadataByField[fieldName][0]" />
+                                </div>
+
+                            </div>
+                        </div>
+                        <div v-else>
+                            No events found for this field. If you are sure this field has events, please wait while they load, if not you can select 
+                            <span class="text-orange-500">
+                                All data
+                            </span>
+                        </div>
+                    </div>
+                    <div v-else>
+                        <div class="px-1.5">
+                            <!-- {{ selectedEvents[i][fieldName] }}
+                            {{ events[fieldName] }} -->
+                            <FieldCheckboxInputAllEvents name="fieldName" v-model="selectedEvents[i][fieldName]"
+                                :options="allData" :field-name-metadata="metadataByField[fieldName][0]" />
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
-    </div>
-    <div>
-        <!-- {{ selectedEvents }} -->
-        <FilterQueryDefinitionsV2 :selected-data="selectedEvents" />
+        <div>
+            <!-- {{ selectedEvents }} -->
+            <FilterQueryDefinitionsV2 :selected-data="selectedEvents" />
+        </div>
+
     </div>
 
 </template>

@@ -31,7 +31,7 @@ onMounted(async () => {
 });
 
 const isEqual = (obj1, obj2) => {
-    return obj1.name === obj2.name && obj1.event_id === obj2.event_id;
+    return obj1.name === obj2.name && obj1.event_id === 0;
 };
 
 const updateSelection = (value) => {
@@ -60,7 +60,7 @@ const updateSelection = (value) => {
 
 const updateQuery = (property, value, item) => {
     const newValue = [...props.modelValue];
-    const selectedEvent = newValue.find(i => i.event_id === item.event_id);
+    const selectedEvent = newValue.find(i => i.event_id === 0);
     if (selectedEvent) {
         if (property == 'operator') {
             console.log('select:', selectedEvent.query[property])
@@ -77,7 +77,7 @@ const updateQuery = (property, value, item) => {
 
 
 const updateInputQuery = (key, value, option) => {
-    const item = props.modelValue.find(item => item.event_id === option.event_id);
+    const item = props.modelValue.find(item => item.event_id === 0);
     if (item) {
         if (!Array.isArray(item.query[key])) {
             item.query[key] = [];
@@ -89,7 +89,7 @@ const updateInputQuery = (key, value, option) => {
 
 //
 const updateInputBetweenQuery = (key, value, option, pointer) => {
-    const item = props.modelValue.find(item => item.event_id === option.event_id);
+    const item = props.modelValue.find(item => item.event_id === 0);
     console.log('pointer:', pointer);
     console.log('item:', item);
     if (item) {
@@ -108,16 +108,6 @@ const updateInputBetweenQuery = (key, value, option, pointer) => {
     }
 };
 
-/*
-const updateQuery = (query, event) => {
-        const newValue = [...props.modelValue];
-        const selectedEvent = newValue.find(item => item.event_id === event.event_id);
-        if (selectedEvent) {
-selectedEvent.query = query;
-}
-emit('update:modelValue', newValue);
-};
-*/
 
 const selectedCheckboxes = reactive({});
 
@@ -200,28 +190,28 @@ const truefalseOptions = [
     <div ref="checkboxGroup" class="flex flex-col">
         <!-- {{ options }} -->
         <div class="grid grid-cols-1 gap-5 py-5">
-            <div class="flex items-center mb-2 cursor-pointer" v-for="option in options" :key="option.event_id">
+            <div class="flex items-center mb-2 cursor-pointer" v-for="option in options" :key="0">
                 <div class="w-1/4">
-                    <label :for="option.event_id" class="flex items-center">
+                    <label :for="0" class="flex items-center">
                         <input type="checkbox" :name="name" :value="{
-                name: option.name, event_id: option.event_id
-            }" :id="option.event_id" :checked="modelValue.some(item => isEqual(item, {
+                name: option.name, event_id: 0
+            }" :id="0" :checked="modelValue.some(item => isEqual(item, {
                 name: option.name,
-                event_id: option.event_id
+                event_id: 0
             }))" @change="updateSelection({
                 name: option.name,
-                event_id: option.event_id
+                event_id: 0
             })" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                         <span class="ml-2">{{ option.name }}</span>
                     </label>
                 </div>
                 <!-- {{ modelValue.some(item => isEqual(item, {
                 name: option.name,
-                event_id: option.event_id
+                event_id: 0
             })) }} -->
                 <div v-if="modelValue.some(item => isEqual(item, {
                 name: option.name,
-                event_id: option.event_id
+                event_id: 0
             }))" class="w-3/4 ml-4">
                     {{ fieldNameMetadata.element_type }}
                     <div id="responses" class="border-l border-white">
@@ -241,13 +231,12 @@ const truefalseOptions = [
                                             class="flex items-center mb-2 cursor-pointer">
                                             <input type="checkbox" name="fieldValues" :value="responseOption.value"
                                                 :id="responseOption.value"
-                                                :checked="modelValue.find(item => item.event_id === option.event_id)?.query.collection.includes(responseOption.value)"
+                                                :checked="modelValue.find(item => item.event_id === 0)?.query.collection.includes(responseOption.value)"
                                                 @change="updateQuery('collection', $event.target.checked
-                ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
-                : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
-                { name: option.name, event_id: option.event_id }
-            )"
-                                                class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                ? [...(modelValue.find(item => item.event_id === 0)?.query.collection || []), responseOption.value]
+                : (modelValue.find(item => item.event_id === 0)?.query.collection || []).filter(q => q !== responseOption.value),
+                { name: option.name, event_id: 0 }
+            )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                             <span class="ml-2" v-html="responseOption.name"></span>
                                         </label>
                                     </div>
@@ -264,13 +253,12 @@ const truefalseOptions = [
                                     :for="responseOption.value" class="flex items-center mb-2 cursor-pointer">
                                     <input type="checkbox" name="fieldValues" :value="responseOption.value"
                                         :id="responseOption.value"
-                                        :checked="modelValue.find(item => item.event_id === option.event_id)?.query.collection.includes(responseOption.value)"
+                                        :checked="modelValue.find(item => item.event_id === 0)?.query.collection.includes(responseOption.value)"
                                         @change="updateQuery('collection', $event.target.checked
-                ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
-                : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
-                { name: option.name, event_id: option.event_id }
-            )"
-                                        class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                ? [...(modelValue.find(item => item.event_id === 0)?.query.collection || []), responseOption.value]
+                : (modelValue.find(item => item.event_id === 0)?.query.collection || []).filter(q => q !== responseOption.value),
+                { name: option.name, event_id: 0 }
+            )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                     <span class="ml-2" v-html="responseOption.name"></span>
                                 </label>
                             </div>
@@ -285,22 +273,20 @@ const truefalseOptions = [
                                     :for="responseOption.value" class="flex items-center mb-2 cursor-pointer">
                                     <input type="checkbox" name="fieldValues" :value="responseOption.value"
                                         :id="responseOption.value"
-                                        :checked="modelValue.find(item => item.event_id === option.event_id)?.query.collection.includes(responseOption.value)"
+                                        :checked="modelValue.find(item => item.event_id === 0)?.query.collection.includes(responseOption.value)"
                                         @change="updateQuery('collection', $event.target.checked
-                ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
-                : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
-                { name: option.name, event_id: option.event_id }
-            )"
-                                        class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                ? [...(modelValue.find(item => item.event_id === 0)?.query.collection || []), responseOption.value]
+                : (modelValue.find(item => item.event_id === 0)?.query.collection || []).filter(q => q !== responseOption.value),
+                { name: option.name, event_id: 0 }
+            )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                     <span class="ml-2" v-html="responseOption.name"></span>
                                 </label>
                             </div>
                         </div>
-                        <div class="flex gap-5" v-else-if="fieldNameMetadata.element_type == 'calc'">
-                            <div class="pb-5 ">
-                                <SelectInput
-                                    :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                                    @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
+                        <div class="gap-5 " v-else-if="fieldNameMetadata.element_type == 'calc'">
+                            <div class="pb-5">
+                                <SelectInput :value="modelValue.find(item => item.event_id === 0)?.query.operator"
+                                    @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: 0 })">
                                     <template #options>
                                         <option :value="operator.value" v-for="operator in operatorOptions" class="">
                                             <span class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
@@ -311,12 +297,12 @@ const truefalseOptions = [
                                 </SelectInput>
                             </div>
                             <div>
-                                <div class="" v-if="modelValue[0].query.operator == 'BETWEEN'">
+                                <div class="flex gap-5" v-if="modelValue[0].query.operator == 'BETWEEN'">
                                     <div>
                                         <input ref="input" type="number"
                                             class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
-                                            @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'min')">
+                                            :value="modelValue.find(item => item.event_id === 0)?.query.collection"
+                                            @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: 0 }, 'min')">
                                     </div>
                                     <div class="py-2 ">
                                         AND
@@ -324,8 +310,8 @@ const truefalseOptions = [
                                     <div>
                                         <input ref="input" type="number"
                                             class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
-                                            @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'max')">
+                                            :value="modelValue.find(item => item.event_id === 0)?.query.collection"
+                                            @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: 0 }, 'max')">
                                     </div>
                                 </div>
                                 <div v-else-if="modelValue[0].query.operator == '=' ||
@@ -337,8 +323,8 @@ const truefalseOptions = [
                 ">
                                     <input ref="input" type="number"
                                         class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
-                                        @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                        :value="modelValue.find(item => item.event_id === 0)?.query.collection"
+                                        @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: 0 })">
                                 </div>
                                 <div v-else>
                                     The query <span class="italic font-light text-orange-500"> {{
@@ -353,11 +339,11 @@ const truefalseOptions = [
                             <!--if type == text but it has a validation min and a max-->
                             <div
                                 v-if="fieldNameMetadata.element_validation_min || fieldNameMetadata.element_validation_max">
-                                <div class="gap-5">
-                                    <div class="pb-5">
+                                <div class="gap-5 pb-5">
+                                    <div>
                                         <SelectInput
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                            :value="modelValue.find(item => item.event_id === 0)?.query.operator"
+                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: 0 })">
                                             <template #options>
                                                 <option :value="operator.value" v-for="operator in operatorOptions"
                                                     class="">
@@ -374,10 +360,10 @@ const truefalseOptions = [
                                             <div>
                                                 <input ref="input" type="number"
                                                     class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                    :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                    :value="modelValue.find(item => item.event_id === 0)?.query.collection"
                                                     :min="fieldNameMetadata.element_validation_min"
                                                     :max="fieldNameMetadata.element_validation_max"
-                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'min')">
+                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: 0 }, 'min')">
                                             </div>
                                             <div class="py-2 ">
                                                 AND
@@ -385,10 +371,10 @@ const truefalseOptions = [
                                             <div>
                                                 <input ref="input" type="number"
                                                     class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                    :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                    :value="modelValue.find(item => item.event_id === 0)?.query.collection"
                                                     :min="fieldNameMetadata.element_validation_min"
                                                     :max="fieldNameMetadata.element_validation_max"
-                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'max')">
+                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: 0 }, 'max')">
                                             </div>
                                         </div>
                                         <div v-else-if="modelValue[0].query.operator == '=' ||
@@ -400,10 +386,10 @@ const truefalseOptions = [
                 ">
                                             <input ref="input" type="number"
                                                 class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                :value="modelValue.find(item => item.event_id === 0)?.query.collection"
                                                 :min="fieldNameMetadata.element_validation_min"
                                                 :max="fieldNameMetadata.element_validation_max"
-                                                @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                                @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: 0 })">
                                         </div>
                                         <div v-else>
                                             The query <span class="italic font-light text-orange-500"> {{
@@ -445,8 +431,8 @@ const truefalseOptions = [
                                 <div class="gap-5 ">
                                     <div class="pb-5">
                                         <SelectInput
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                            :value="modelValue.find(item => item.event_id === 0)?.query.operator"
+                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: 0 })">
                                             <template #options>
                                                 <option :value="operator.value" v-for="operator in operatorOptions"
                                                     class="">
@@ -464,8 +450,8 @@ const truefalseOptions = [
                                             <div>
                                                 <input ref="input" type="date"
                                                     class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                    :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
-                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'min')">
+                                                    :value="modelValue.find(item => item.event_id === 0)?.query.collection"
+                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: 0 }, 'min')">
                                             </div>
                                             <div class="py-2 ">
                                                 AND
@@ -473,8 +459,8 @@ const truefalseOptions = [
                                             <div>
                                                 <input ref="input" type="date"
                                                     class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                    :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
-                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'max')">
+                                                    :value="modelValue.find(item => item.event_id === 0)?.query.collection"
+                                                    @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: 0 }, 'max')">
                                             </div>
                                         </div>
                                         <div v-else-if="modelValue[0].query.operator == '=' ||
@@ -486,10 +472,10 @@ const truefalseOptions = [
                 ">
                                             <input ref="input" type="date"
                                                 class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                :value="modelValue.find(item => item.event_id === 0)?.query.collection"
                                                 :min="fieldNameMetadata.element_validation_min"
                                                 :max="fieldNameMetadata.element_validation_max"
-                                                @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                                @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: 0 })">
                                         </div>
                                         <div v-else>
                                             The query <span class="italic font-light text-orange-500"> {{
@@ -507,8 +493,8 @@ const truefalseOptions = [
                                 <div class="flex gap-5">
                                     <div>
                                         <SelectInput
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                            :value="modelValue.find(item => item.event_id === 0)?.query.operator"
+                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: 0 })">
                                             <template #options>
                                                 <option :value="operator.value" v-for="operator in operatorOptions"
                                                     class="">
@@ -523,10 +509,10 @@ const truefalseOptions = [
                                     <div v-if="modelValue[0].query.operator == 'LIKE'">
                                         <input ref="input" type="text"
                                             class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                            :value="modelValue.find(item => item.event_id === 0)?.query.collection"
                                             :min="fieldNameMetadata.element_validation_min"
                                             :max="fieldNameMetadata.element_validation_max"
-                                            @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                            @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: 0 })">
                                     </div>
                                     <div v-else>
                                         The query <span class="italic font-light text-orange-500"> {{
@@ -545,9 +531,8 @@ const truefalseOptions = [
                         <div v-else-if="fieldNameMetadata.element_type == 'textarea'">
                             <div class="flex gap-5">
                                 <div>
-                                    <SelectInput
-                                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                                        @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                    <SelectInput :value="modelValue.find(item => item.event_id === 0)?.query.operator"
+                                        @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: 0 })">
                                         <template #options>
                                             <option :value="operator.value" v-for="operator in operatorOptions"
                                                 class="">
@@ -563,10 +548,10 @@ const truefalseOptions = [
                                     <!-- {{ modelValue[0].query.collection[0]= '' }} -->
                                     <input ref="input" type="text"
                                         class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                        :value="modelValue.find(item => item.event_id === 0)?.query.collection"
                                         :min="fieldNameMetadata.element_validation_min"
                                         :max="fieldNameMetadata.element_validation_max"
-                                        @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                        @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: 0 })">
                                 </div>
                                 <div v-else>
                                     The query <span class="italic font-light text-orange-500"> {{

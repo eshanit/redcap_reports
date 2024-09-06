@@ -1,12 +1,11 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
 
-defineProps({
+const props = defineProps({
     modelValue: String,
 });
 
-defineEmits(['update:modelValue']);
-
+const emit = defineEmits(['update:modelValue']);
 const select = ref(null);
 
 onMounted(() => {
@@ -23,7 +22,7 @@ defineExpose({ focus: () => select.value.focus() });
         ref="select"
         class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         :value="modelValue"
-        @change="$emit('update:modelValue', $event.target.value)"
+        @change="emit('update:modelValue', $event.target.value)"
     >
         <option value="" disabled>Select an option</option>
         <slot name="options" />

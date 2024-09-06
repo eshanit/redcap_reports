@@ -16,11 +16,7 @@ const props = defineProps<{
 
 }>()
 
-
-
 const selected_fields = ref([])
-
-
 
 </script>
 <template>

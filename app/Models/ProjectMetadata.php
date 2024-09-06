@@ -48,5 +48,26 @@ class ProjectMetadata extends Model
     // {
     //   return $this->belongsToMany(ProjectEventMetadata::class,'redcap_events_forms','form_name', 'event_id');
     // }
+
+    /**
+     * Get field names scope
+     */
+
+     public function scopeGetFieldNames($query, $projectId)
+     {
+        $query->where('project_id',$projectId)
+                ->select(
+                  'field_name',
+                  'form_name',
+                  'element_type',
+                  'element_enum',
+                  'element_validation_type',
+                  'element_validation_min',
+                  'element_validation_max'
+                );
+
+                return $query;
+              
+     }
   
 }

@@ -16,7 +16,7 @@ class IntersectionFilteredQueryController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(string $projectId, InputRequest $request)
+    public function __invoke(string $projectId,string $type, InputRequest $request)
     {
         //
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
@@ -48,9 +48,18 @@ class IntersectionFilteredQueryController extends Controller
 
         $selectedRecords = array_intersect(...$intersectionResults);
 
-        //dd($selectedRecords);
+       // dd($selectedRecords);
 
-        // $allRecords = QueryBuilder::for(ProjectData::class)
+        if( $type == 'records') {
+
+            $data = $selectedRecords;
+
+            $path = 'Data/Intersections/RecordsOnly';
+
+        } else {
+
+            
+        // $data = QueryBuilder::for(ProjectData::class)
         //     ->with(['project_event_metadata', 'projects.project_metadata'])
         //     ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
         //     ->where('project_id', $projectId)
@@ -67,13 +76,13 @@ class IntersectionFilteredQueryController extends Controller
         //         'form_name' => $project->projects->project_metadata->first()->form_name,
         //     ]);
 
-        $allRecords = QueryBuilder::for(ProjectData::class)
+        $data = QueryBuilder::for(ProjectData::class)
         ->with(['project_event_metadata', 'projects.project_metadata'])
         ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
         ->where('project_id', $projectId)
         ->whereIn('record', $selectedRecords)
         ->filter(Request::only('search', 'trashed'))
-        ->paginate(10000)
+        ->paginate(1000)
         ->withQueryString()
         ->through(fn($project) => [
             'record' => $project->record,
@@ -86,12 +95,20 @@ class IntersectionFilteredQueryController extends Controller
             'form_name' => $project->projects->project_metadata->first()->form_name,
         ]);
 
+           // $path = 'Data/Intersections/FullRecords';
+
+
+           $path = 'Data/Test';
+
+        }
+
+
           //dd($allRecords);
 
-        return Inertia::render('Data/Test', [
+        return Inertia::render($path, [
             'filters' => Request::all('search', 'sort'),
             'requests' => $request->except('page'),
-            'records' => $allRecords,//$allRecords->groupBy(['event.id','record'])->flatten(1),
+            'records' => $data,//$allRecords->groupBy(['event.id','record'])->flatten(1),
             'project_id' => $projectId,
             'field_name' => [],
             'value' => [],
