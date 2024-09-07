@@ -28,7 +28,9 @@ const props = defineProps<{
     'field_name': string,
     'value': any,
     'project': any,
+    'selected': any,
 }>();
+
 const dynamicHeaders = computed(() => {
     const headers = new Set<string>();
     props.records.data.forEach(item => {
@@ -61,6 +63,11 @@ const groupedData = computed(() => {
 
     return result;
 });
+
+const uniqueValuesSet = new Set(Object.values(props.selected));
+
+// Convert the Set back to an array
+const distinctValuesArray = Array.from(uniqueValuesSet);
 
 const back = () => {
     window.history.back();
@@ -102,7 +109,13 @@ const back = () => {
         </template>
         <div class="py-12">
             <div class="max-w-full mx-auto sm:px-6 lg:px-8">
+        
+                    <div class="py-10 text-3xl text-sky-500">
+                        {{ distinctValuesArray.length }} | Unique records
+                    </div>
+       
                 <div class="overflow-hidden bg-white shadow-xl sm:rounded-lg">
+
                     <div class="overflow-x-auto">
                         <div class="relative">
                             <table class="min-w-full border border-collapse border-gray-300">

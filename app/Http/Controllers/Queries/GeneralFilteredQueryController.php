@@ -10,14 +10,13 @@ use Illuminate\Http\Request as InputRequest;
 use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
-class UnionFilteredQueryController extends Controller
+class GeneralFilteredQueryController extends Controller
 {
-    public function __invoke(string $projectId, string $type, InputRequest $request)
+    public function __invoke(string $projectId, string $type, string $dataTye ,InputRequest $request)
     {
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
 
         $qArray = collect($request->all())->map(function ($el) use ($projectId) {
-//dd($el);
             $el['values'] = array_map(function($value) {
                 return is_numeric($value) ? (int)$value : $value;
             }, $el['values']);
@@ -33,8 +32,8 @@ class UnionFilteredQueryController extends Controller
                 }, function ($query) use ($el) {
                     if ($el['operator'] === 'OR' || $el['operator'] === '=') {
                         return $query->whereIn('value', $el['values']);
-                    } else if ($el['operator'] === 'LIKE'){
-                        return $query->where('value','like', $el['values'][0].'%');
+                    } else if ($el['operator'] === 'LIKE') {
+                        return $query->where('value', 'like', $el['values'][0] . '%');
                     } else {
                         return $query->where('value', $el['operator'], $el['values'][0]);
                     }
@@ -44,18 +43,27 @@ class UnionFilteredQueryController extends Controller
         // Initialize a variable to hold the base query
         $baseQuery = array_shift($qArray); // Get the first query from the array
 
-        // Loop through the remaining queries and apply unionAll
-        if ($type = 'unionAll') {
-            foreach ($qArray as $query) {
-                $baseQuery = $baseQuery->unionAll($query);
-            }
-        } else {
-            foreach ($qArray as $query) {
-                $baseQuery = $baseQuery->union($query);
-            }
+        // Loop through the remaining queries and apply union, unionAll, or except
+        switch ($type) {
+            case 'union':
+                foreach ($qArray as $query) {
+                    $baseQuery = $baseQuery->union($query);
+                }
+                break;
+
+            case 'unionAll':
+                foreach ($qArray as $query) {
+                    $baseQuery = $baseQuery->unionAll($query);
+                }
+                break;
+
+            case 'except':
+                foreach ($qArray as $query) {
+                    $baseQuery = $baseQuery->except($query);
+                }
+                break;
         }
 
-        //dd($baseQuery->count());
         // Apply filters and paginate
         $records = $baseQuery
             ->paginate($baseQuery->count())
@@ -70,7 +78,6 @@ class UnionFilteredQueryController extends Controller
                 'value' => $project->value,
                 'form_name' => $project->projects->project_metadata->first()->form_name,
             ]);
-
 
         return Inertia::render('Data/UnPaginatedList', [
             'filters' => Request::all('search', 'sort'),

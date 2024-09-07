@@ -6,8 +6,6 @@ import throttle from 'lodash/throttle';
 import mapValues from 'lodash/mapValues';
 import Pagination from '@/Components/Pagination.vue';
 import Dropdown from '@/Components/Dropdown.vue';
-import ArrowUpIcon from 'vue-material-design-icons/ArrowUp.vue';
-import ArrowDownIcon from 'vue-material-design-icons/ArrowDown.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import numberWithSpaces from '@/Utilities/numberWithSpaces';
@@ -85,7 +83,9 @@ watch(form, throttle(function () {
     deep: true
 })
 
-
+const back = () => {
+    window.history.back();
+}
 
 </script>
 <template>
@@ -109,14 +109,14 @@ watch(form, throttle(function () {
                     <ChevronRightIcon :size="25" />
                 </div>
                 <div class="text-xl font-light leading-tight text-gray-400 hover:text-orange-500">
-                    <Link class="btn-indigo" :href="`/project/${project.project_id}/fieldname/${field_name}`">
-                    {{ field_name }}: Insights
+                    <Link class="btn-indigo" href="#" @click="back">
+                    Back
                     </Link>
                 </div>
                 <div class="font-thin text-green-500 ">
                     <ChevronRightIcon :size="25" />
                 </div>
-                <div class="text-orange-500">
+                <div class="text-2xl text-orange-500">
                     {{ field_name }}: queried data list
                 </div>
             </div>

@@ -109,41 +109,7 @@ const dynamicHeaders = computed(() => {
             <!-- {{ transformedData }} -->
         </pre>
 
-        <div class="py-12">
-            <div class="max-w-full mx-auto sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-xl sm:rounded-lg">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full border border-collapse border-gray-200">
-                            <thead>
-                                <tr>
-                                    <th class="sticky left-0 p-2 bg-white border border-gray-300">Record</th>
-                                    <th class="sticky p-2 bg-white border border-gray-300 left-24">Event</th>
-                                    <th v-for="header in dynamicHeaders" :key="header"
-                                        class="p-2 border border-gray-300">
-                                        {{ header }}
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(row, index) in transformedData" :key="row.record + row.event + index">
-                                    <td class="sticky left-0 p-2 bg-white border border-gray-300">
-                                        {{ index === 0 || transformedData[index - 1].record !== row.record ? row.record
-                        : '' }}
-                                    </td>
-                                    <td class="sticky p-2 bg-white border border-gray-300 left-24">{{ row.event }}</td>
-                                    <td v-for="header in dynamicHeaders" :key="header"
-                                        class="p-2 border border-gray-300">
-                                        {{ row[header] }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <Pagination class="mt-6" :links="records.links" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
+ 
     </AppLayout>
 </template>
 <style scoped>

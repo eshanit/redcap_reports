@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SurveyItemDataList from '@/Components/Redcap/SurveyItemDataList.vue'
 import SurveyItemDataInsights from '@/Components/Redcap/SurveyItemDataInsights.vue'
@@ -25,16 +27,23 @@ const props = defineProps<{
     'values': any[],
 }>()
 
+const back = () => {
+    window.history.back();
+}
 
 </script>
 <template>
     <AppLayout title="entry">
         <template #header>
             <div class="flex gap-2.5">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    {{ reportData.data[0].app_title }}
-                </h2>
-                <div>|</div>
+                <div class="text-xl font-light leading-tight text-gray-400 hover:text-orange-500">
+                    <Link class="btn-indigo" href="#" @click="back">
+                    Back
+                    </Link>
+                </div>
+                <div class="font-thin text-green-500 ">
+                    <ChevronRightIcon :size="25" />
+                </div>
                 <div>
                     <span v-html="reportData.data[0].element_lable" /> (<span class="text-sm italic text-green-500"> {{
                         reportData.data[0].field_name }}</span>)

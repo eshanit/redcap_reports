@@ -16,7 +16,7 @@ class IntersectionFilteredQueryCopyController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(string $projectId, InputRequest $request)
+    public function __invoke(string $projectId,string $type, InputRequest $request)
     {
         //
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
@@ -38,51 +38,90 @@ class IntersectionFilteredQueryCopyController extends Controller
         // dd($inputRequestWithExtras);
 
         // dd( Request::all('search', 'sort'), $request->all());
-        //dd($request->except('page'));
+       // dd($request->except('page'));
         foreach ($request->except('page') as $index => $condition) {
             //dd($condition);
             $intersectionResults[$index] = $this->applyCondition(clone $query, $condition)->get()->pluck('record')->toArray();
         }
 
+       // dd($intersectionResults);
+
         $selectedRecords = array_intersect(...$intersectionResults);
 
-        //dd($selectedRecords);
+       // dd($selectedRecords);
 
-        $allRecords = QueryBuilder::for(ProjectData::class)
-            ->with(['project_event_metadata', 'projects.project_metadata'])
-            ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
-            ->where('project_id', $projectId)
-            ->whereIn('record', $selectedRecords)
-            ->filter(Request::only('search', 'trashed')) // Apply filtering
-            ->paginate(25)
-            ->withQueryString()
-            ->through(fn($project) => [
-                'record' => $project->record,
-                'event' => [
-                    'id' => $project->event_id,
-                    'name' => $project->project_event_metadata->descrip,
-                ],
-                'field_name' => $project->field_name,
-                'value' => $project->value,
-                'form_name' => $project->projects->project_metadata->first()->form_name,
-            ]);
+        if( $type == 'records') {
+
+            $data = $selectedRecords;
+
+            $path = 'Data/Intersections/RecordsOnly';
+
+        } else {
+
+            
+        // $data = QueryBuilder::for(ProjectData::class)
+        //     ->with(['project_event_metadata', 'projects.project_metadata'])
+        //     ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
+        //     ->where('project_id', $projectId)
+        //     ->whereIn('record', $selectedRecords)
+        //     ->get()
+        //     ->map(fn($project) => [
+        //         'record' => $project->record,
+        //         'event' => [
+        //             'id' => $project->event_id,
+        //             'name' => $project->project_event_metadata->descrip,
+        //         ],
+        //         'field_name' => $project->field_name,
+        //         'value' => $project->value,
+        //         'form_name' => $project->projects->project_metadata->first()->form_name,
+        //     ]);
+
+        $data = QueryBuilder::for(ProjectData::class)
+        ->with(['project_event_metadata', 'projects.project_metadata'])
+        ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
+        ->where('project_id', $projectId)
+        ->whereIn('record', $selectedRecords)
+        ->filter(Request::only('search', 'trashed'))
+        ->paginate(1000)
+        ->withQueryString()
+        ->through(fn($project) => [
+            'record' => $project->record,
+            'event' => [
+                'id' => $project->event_id,
+                'name' => $project->project_event_metadata->descrip,
+            ],
+            'field_name' => $project->field_name,
+            'value' => $project->value,
+            'form_name' => $project->projects->project_metadata->first()->form_name,
+        ]);
+
+           // $path = 'Data/Intersections/FullRecords';
 
 
-        //  dd($allRecords);
+           $path = 'Data/Test';
 
-        return Inertia::render('Data/Test', [
+        }
+
+
+          //dd($allRecords);
+
+        return Inertia::render($path, [
             'filters' => Request::all('search', 'sort'),
             'requests' => $request->except('page'),
-            'records' => $allRecords,
+            'records' => $data,//$allRecords->groupBy(['event.id','record'])->flatten(1),
             'project_id' => $projectId,
             'field_name' => [],
             'value' => [],
             'project' => $project,
+            'selected' => $selectedRecords
         ]);
     }
 
     protected function applyCondition($query, $condition)
     {
+        $condition['values'] = array_map(function($value) {
+            return is_numeric($value) ? (int)$value : $value;
+        }, $condition['values']);
 
         //  dd($condition);
         $field = $condition['field_name'];
@@ -107,11 +146,12 @@ class IntersectionFilteredQueryCopyController extends Controller
 
         // // dd($query->getBindings(), $query->toSql());
         // Handle sorting
-        if ($condition['sort'] !== null) {
-            $sortField = $condition['sort'];
-            $sortDirection = $condition['sort_direction'] ?? 'asc';
-            $query->orderBy($sortField, $sortDirection);
-        }
+      //  dd($condition);
+        // if ($condition['sort'] !== null) {
+        //     $sortField = $condition['sort'];
+        //     $sortDirection = $condition['sort_direction'] ?? 'asc';
+        //     $query->orderBy($sortField, $sortDirection);
+        // }
 
         return  $query;
     }

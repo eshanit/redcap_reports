@@ -10,6 +10,7 @@ import handleQueryArrays from '@/Utilities/handleQueryArrays';
 import WarningOutlineButton from '@/Components/WarningOutlineButton.vue';
 import SetAllIcon from 'vue-material-design-icons/SetAll.vue'
 import SetCenterIcon from 'vue-material-design-icons/SetCenter.vue'
+import SetLeftIcon from 'vue-material-design-icons/SetLeft.vue'
 
 const props = defineProps<{
   selectedData: any
@@ -33,6 +34,7 @@ const finalQueryArray = computed(() => {
 //draggable 
 const droppedUnionItems = ref<QueryItem[]>([]);
 const droppedIntersectionItems = ref<QueryItem[]>([]);
+const droppedExceptionItems = ref<QueryItem[]>([]);
 
 
 const onDragEnd = (event: any) => {
@@ -46,6 +48,10 @@ const removeDroppedUnionItem = (item: QueryItem) => {
 const removeDroppedIntersectionItem = (item: QueryItem) => {
   droppedIntersectionItems.value = droppedIntersectionItems.value.filter(i => i !== item);
 };
+
+const removeDroppedExceptionItem = (item: QueryItem) => {
+  droppedExceptionItems.value = droppedExceptionItems.value.filter(i => i !== item);
+}
 
 //dropzone
 const dropZoneRef = ref<HTMLElement>();
@@ -83,6 +89,10 @@ const postUnionArray = (selectedArray: any, type: string) => {
 //
 const postIntesectionArray = (selectedArray: any, type: string) => {
   router.get(`intersection/filtered/${type}/query`, selectedArray)
+}
+
+const postExceptionArray = (selectedArray: any) => {
+  router.get(`except/filtered/query`, selectedArray)
 }
 
 </script>
@@ -137,7 +147,18 @@ const postIntesectionArray = (selectedArray: any, type: string) => {
 
       <!-- Drop zone -->
       <!-- <pre>
-  {{ droppedIntersectionItems }}
+  <div class="text-cyan-500 ">
+    intersection: {{ droppedIntersectionItems.length }}
+  </div>
+  ---
+  <div class="text-orange-500 ">
+    union: {{ droppedUnionItems.length }}
+  </div>
+  ---
+  <div class="text-sky-500 ">
+    exception: {{ droppedExceptionItems.length }}
+  </div>
+
 </pre> -->
       <div class="py-5 ">
         <div class="font-semibold">
@@ -145,7 +166,7 @@ const postIntesectionArray = (selectedArray: any, type: string) => {
         </div>
       </div>
       <div class="grid grid-cols-1 gap-5 pt-5">
-        <div id="union" class="p-5 bg-white border rounded-lg shadow-xl ">
+        <div id="union" class="p-5 bg-white border rounded-lg shadow-xl " v-if="(droppedIntersectionItems.length + droppedExceptionItems.length) == 0 ">
           <div class="flex gap-5 font-bold text-orange-500 ">
             UNION DROPZONE <span class="">
               <SetAllIcon size="35" />
@@ -155,13 +176,12 @@ const postIntesectionArray = (selectedArray: any, type: string) => {
             Drag conditions which you need union between them.
           </div>
           <div>
-           
-              <draggable v-model="droppedUnionItems" group="query" class="grid grid-cols-3 gap-5">
-                  <template #item="{ element }">
-                    <GreenBadgeTrash :text="element.index" @click="removeDroppedUnionItem(element)" />
-                </template>
-              </draggable>
-          
+            <draggable v-model="droppedUnionItems" group="query" class="grid grid-cols-3 gap-5">
+              <template #item="{ element }">
+                <GreenBadgeTrash :text="element.index" @click="removeDroppedUnionItem(element)" />
+              </template>
+            </draggable>
+
           </div>
           <div class="flex justify-end pt-2.5" v-if="droppedUnionItems.length > 0">
             <div>
@@ -172,9 +192,10 @@ const postIntesectionArray = (selectedArray: any, type: string) => {
           </div>
         </div>
 
-        <div id="union" class="p-5 bg-white border rounded-lg shadow-xl ">
+        <div id="intersection" class="p-5 bg-white border rounded-lg shadow-xl " v-if="(droppedUnionItems.length + droppedExceptionItems.length) == 0 ">
           <div class="flex gap-5 font-bold text-orange-500">
-            INTERSECTION DROPZONE <SetCenterIcon size="35" />
+            INTERSECTION DROPZONE
+            <SetCenterIcon size="35" />
           </div>
           <div class="text-sm italic font-thin text-gray-500 pb-2.5">
             Drag conditions which you need intersection between them.
@@ -186,7 +207,7 @@ const postIntesectionArray = (selectedArray: any, type: string) => {
               </template>
             </draggable>
           </div>
-          <div class="flex justify-end pt-2.5"  v-if="droppedIntersectionItems.length > 0">
+          <div class="flex justify-end pt-2.5" v-if="droppedIntersectionItems.length > 0">
             <div class="flex gap-5">
               <WarningOutlineButton @click="postIntesectionArray(droppedIntersectionItems, 'records')">
                 Get Records
@@ -198,6 +219,32 @@ const postIntesectionArray = (selectedArray: any, type: string) => {
           </div>
         </div>
 
+        <div id="intersection" class="p-5 bg-white border rounded-lg shadow-xl " v-if="(droppedIntersectionItems.length + droppedUnionItems.length) == 0 ">
+          <div class="flex gap-5 font-bold text-orange-500">
+            EXCEPT DROPZONE
+            <SetLeftIcon size="35" />
+          </div>
+          <div class="text-sm italic font-thin text-gray-500 pb-2.5">
+            Drag conditions which you need exceptions from.
+          </div>
+          <div>
+            <draggable v-model="droppedExceptionItems" group="query" class="grid grid-cols-3 gap-5">
+              <template #item="{ element }">
+                <GreenBadgeTrash :text="element.index" @click="removeDroppedExceptionItem(element)" />
+              </template>
+            </draggable>
+          </div>
+          <div class="flex justify-end pt-2.5" v-if="droppedExceptionItems.length > 0">
+            <div class="flex gap-5">
+              <!-- <WarningOutlineButton @click="postExceptionArray(droppedExceptionItems)">
+                Get Records
+              </WarningOutlineButton> -->
+              <WarningOutlineButton @click="postExceptionArray(droppedExceptionItems)">
+                Get Full Data
+              </WarningOutlineButton>
+            </div>
+          </div>
+        </div>
       </div>
 
 

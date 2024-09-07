@@ -3,7 +3,6 @@ import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SurveyEvents from '@/Components/Redcap/SurveyEvents.vue';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
-import WarningOutlineButton from '@/Components/WarningOutlineButton.vue';
 import { Ref, ref } from 'vue';
 
 const surveyData: Ref<any[]> = ref([])
@@ -24,6 +23,10 @@ const eventfn = (e: string) => {
     selectedEvent.value = e
 }
 
+const back = () => {
+    window.history.back();
+}
+
 </script>
 <template>
     <AppLayout title="Respondent Data">
@@ -38,8 +41,8 @@ const eventfn = (e: string) => {
                     <ChevronRightIcon :size="25" />
                 </div>
                 <div class="text-xl font-light leading-tight text-gray-400 hover:text-orange-500">
-                    <Link class="btn-indigo" :href="`/project/metadata/${project.project_id}`">
-                    Metadata and Stats
+                    <Link class="btn-indigo" href="#" @click="back">
+                    Back
                     </Link>
                 </div>
                 <div class="font-thin text-green-500 ">

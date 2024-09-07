@@ -23,6 +23,12 @@ class ProcessFilteredQueryController extends Controller
         $queryData = $request->validated();
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
 
+        $queryData['values'] = array_map(function($value) {
+            return is_numeric($value) ? (int)$value : $value;
+        }, $queryData['values']);
+
+
+
         if($queryData['event_id'] == 0) {
             $records = QueryBuilder::for(ProjectData::class)
             ->with(['project_event_metadata', 'projects.project_metadata'])
@@ -38,6 +44,7 @@ class ProcessFilteredQueryController extends Controller
                 } else if ($queryData['operator'] === 'LIKE'){
                     return $query->where('value','like', $queryData['values'][0].'%');
                 } else {
+                   // dd($queryData['values']);
                     return $query->where('value', $queryData['operator'], $queryData['values'][0]);
                 }
             })

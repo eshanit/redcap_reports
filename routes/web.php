@@ -13,6 +13,7 @@ use App\Http\Controllers\Queries\IntersectionFilteredQueryController;
 use App\Http\Controllers\Queries\GetEventsController;
 use App\Http\Controllers\Queries\GetRespondentEventsFieldDataController;
 use App\Http\Controllers\Queries\RepondentRecordTrackingController;
+use App\Http\Controllers\Queries\ExceptFilteredQueryController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -55,8 +56,10 @@ Route::middleware([
     Route::get('project/{projectId}/event/{eventId}/respondent/{record}', FieldRecordContainingResponseController::class)->name('data-for-record-survey');
     Route::get('project/{projectId}/process/filtered/query', ProcessFilteredQueryController::class)->name('data-for-record-survey');
     Route::get('project/{projectId}/union/{unionType}/filtered/query', UnionFilteredQueryController::class)->name('union-queries-survey');
+    Route::get('project/{projectId}/except/filtered/query', ExceptFilteredQueryController::class)->name('except-queries-survey');
     Route::get('project/{projectId}/intersection/filtered/{type}/query', IntersectionFilteredQueryController::class)->name('intersection-queries-survey');
     Route::get('project/{projectId}/fieldname/{fieldName}/events',GetEventsController::class)->name('events-survey'); //no view
     Route::get('project/{projectId}/record/{record}/fieldname/{fieldName}', GetRespondentEventsFieldDataController::class)->name('record-field-project');
     Route::get('project/{projectId}/record/{recordId}/tracking', RepondentRecordTrackingController::class)->name('record-tracking');
+   
 });

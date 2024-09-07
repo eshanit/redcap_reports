@@ -4,6 +4,7 @@ import FieldCheckboxInput from '@/Components/FieldCheckboxInput.vue';
 import FieldCheckboxInputAllEvents from '@/Components/FieldCheckboxInputAllEvents.vue';
 import FilterQueryDefinitionsV2 from '@/Components/Redcap/FilterQueryDefinitionsV2.vue';
 import VueSelect from "vue3-select-component";
+import hasNonEmptyElements from '@/Utilities/hasNonEmptyElements';
 
 const props = defineProps<{
     projectId: number,
@@ -24,6 +25,7 @@ props.fields.forEach((selectedField) => {
     });
 });
 
+const emit = defineEmits(['selected']);
 
 const getEventsForField = async (fieldName: string) => {
     try {
@@ -43,7 +45,7 @@ watch(() => props.fields, async (newFields) => {
 
     /** - **/
     selectedEvents.value = []
-
+    
     newFields.forEach((selectedField) => {
         selectedEvents.value.push({
             [selectedField]: []
@@ -72,8 +74,14 @@ const allData = [
         event_id: 0
     }
 ]
-</script>
 
+//
+watch(() => selectedEvents, (newValue) => {
+    console.log('selected:', newValue.value);
+    emit('selected', hasNonEmptyElements(newValue.value));
+}, { deep: true })
+
+</script>
 <template>
     <div class="grid grid-cols-2 gap-5">
         <div v-if="fields.length">
