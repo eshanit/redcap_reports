@@ -5,6 +5,7 @@ import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import { defineProps, computed } from 'vue';
 import Pagination from '@/Components/Pagination.vue';
 import numberWithSpaces from '@/Utilities/numberWithSpaces';
+import groupBy from 'lodash/groupBy';;
 
 import Record from '../Reports/Record.vue';
 
@@ -30,45 +31,80 @@ const props = defineProps<{
     'project': any,
 }>();
 
-const transformedData = computed(() => {
-    const result: { record: string; event: string;[key: string]: string }[] = [];
-    const groupedData: { [key: string]: { event: string;[key: string]: string }[] } = {};
+const data = groupBy(props.records, 'record')
 
-    // Group data by record
-    props.records.data.forEach(item => {
-        const key = item.record;
-        if (!groupedData[key]) {
-            groupedData[key] = [];
-        }
-        groupedData[key].push({
-            event: item.event.name,
-            [item.field_name]: item.value,
-        });
-    });
 
-    // Flatten the grouped data into a single array
-    for (const [record, events] of Object.entries(groupedData)) {
-        events.forEach((event, index) => {
-            result.push({
-                record,
-                event: event.event,
-                ...event,
-            });
+// Group data by field names
+const groupedFields = computed(() => {
+    const fieldMap: Record<string, { name: string; eventIds: number[]; eventNames: string[] }> = {};
+
+    for (const records of Object.values(data)) {
+        records.forEach(record => {
+            if (!fieldMap[record.field_name]) {
+                fieldMap[record.field_name] = { name: record.field_name, eventIds: [], eventNames: [], };
+            }
+            if (!fieldMap[record.field_name].eventIds.includes(record.event_id)) {
+                fieldMap[record.field_name].eventIds.push(record.event_id);
+            }
+
+            if (!fieldMap[record.field_name].eventNames.includes(record.event)) {
+                fieldMap[record.field_name].eventNames.push(record.event);
+            }
         });
     }
 
-    return result;
+    return Object.values(fieldMap);
 });
-const dynamicHeaders = computed(() => {
-    const headers: Set<string> = new Set();
 
-    props.records.data.forEach(item => {
-        headers.add(item.field_name);
+const records = computed(() => {
+    return Object.entries(data).map(([key, records]) => {
+        const values: Record<string, Record<number, string | undefined>> = {};
+        records.forEach(record => {
+            if (!values[record.field_name]) {
+                values[record.field_name] = {};
+            }
+            values[record.field_name][record.event_id] = record.value;
+        });
+        return { record: key, values };
     });
-
-    return Array.from(headers);
 });
 
+
+const filterSimilarKeys = computed(() => {
+    // Create an array to hold the transformed records
+  const result = [];
+
+// Iterate through each record
+records.value.forEach(item => {
+  const newItem = { record: item.record, values: {} };
+  
+  // Get the field names
+  const fields = Object.keys(item.values);
+  
+  // Find common keys in values
+  const commonKeys = Object.keys(item.values[fields[0]]).filter(key =>
+    fields.every(field => item.values[field].hasOwnProperty(key))
+  );
+
+  // If there are common keys, add them to the new item
+  if (commonKeys.length > 0) {
+    fields.forEach(field => {
+      newItem.values[field] = {};
+      commonKeys.forEach(key => {
+        newItem.values[field][key] = item.values[field][key];
+      });
+    });
+    result.push(newItem);
+  }
+});
+
+return result;
+})
+
+//
+const back = () => {
+    window.history.back();
+}
 </script>
 <template>
     <AppLayout title="Data ">
@@ -91,43 +127,65 @@ const dynamicHeaders = computed(() => {
                     <ChevronRightIcon :size="25" />
                 </div>
                 <div class="text-xl font-light leading-tight text-gray-400 hover:text-orange-500">
-                    <Link class="btn-indigo" :href="`/project/${project.project_id}/fieldname/${field_name}`">
-                    {{ field_name }}: Insights
+                    <Link class="btn-indigo" href="#" @click="back">
+                    Back
                     </Link>
                 </div>
                 <div class="font-thin text-green-500 ">
                     <ChevronRightIcon :size="25" />
                 </div>
-                <div class="text-orange-500">
-                    {{ field_name }}: queried data list
+                <div class="text-xl text-orange-500">
+                    queried data list
                 </div>
             </div>
 
         </template>
         <pre>
-            {{ records }}
-            <!-- {{ transformedData }} -->
-        </pre>
+    <!-- {{ groupBy(records,'record') }} -->
+    <!-- {{ transformedData }} -->
+      <!-- {{ filterSimilarKeys }}
+    {{ records }} -->
+</pre>
 
- 
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-300">
+                <thead>
+                    <tr>
+                        <th class="p-2 border border-gray-300">Record</th>
+                        <th v-for="(field, index) in groupedFields" :key="index" :colspan="field.eventIds.length"
+                            class="p-2 text-center border border-gray-300">
+                            {{ field.name }}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th class="p-2 border border-gray-300"></th>
+                        <template v-for="field in groupedFields" :key="field.name">
+                            <template v-for="event in field.eventNames" :key="event">
+                                <th class="p-2 border border-gray-300">
+                                    {{ event }}
+                                </th>
+                            </template>
+                        </template>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="record in filterSimilarKeys" :key="record.record">
+                        <td class="p-2 border border-gray-300">{{ record.record }}</td>
+                        <template v-for="field in groupedFields" :key="field.name">
+                            <template v-for="event in field.eventIds" :key="event">
+                                <td class="p-2 border border-gray-300">
+                                    {{ record.values[field.name][event] || '-' }}
+                                </td>
+                            </template>
+                        </template>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </AppLayout>
 </template>
 <style scoped>
-.table-container {
-    position: relative;
-}
-
-.sticky {
-    position: sticky;
-    z-index: 10;
-}
-
-.sticky.left-0 {
-    left: 0;
-}
-
-.sticky.left-24 {
-    left: 6rem;
-    /* Adjust this value based on your layout */
+table {
+    border-collapse: collapse;
 }
 </style>

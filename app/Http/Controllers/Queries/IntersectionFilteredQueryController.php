@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Queries;
 
 use App\Models\Project;
 use App\Models\ProjectData;
+use App\Models\ProjectEventMetadata;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request as InputRequest;
@@ -17,7 +18,9 @@ class IntersectionFilteredQueryController extends Controller
     public function __invoke(string $projectId, string $type, InputRequest $request)
     {
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
-        $query = ProjectData::where('project_id', $projectId);
+        $query = ProjectData::where('project_id', $projectId)->addSelect([
+            'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')
+        ]);
 
         $intersectionResults = [];
         foreach ($request->except('page') as $condition) {
@@ -25,7 +28,7 @@ class IntersectionFilteredQueryController extends Controller
         }
 
         $intersectedResults = $this->intersectArraysByRecord(...$intersectionResults);
-       // dd( $intersectedResults);
+        //dd( $intersectedResults[0]);
 
        // $selectedRecords = array_intersect(...$intersectionResults);
 
@@ -41,7 +44,7 @@ class IntersectionFilteredQueryController extends Controller
             'field_name' => [],
             'value' => [],
             'project' => $project,
-            //'selected' => $selectedRecords
+            'selected' => array_keys($intersectedResults)
         ]);
     }
 

@@ -204,8 +204,8 @@ const truefalseOptions = [
                 <div class="w-1/4">
                     <label :for="option.event_id" class="flex items-center">
                         <input type="checkbox" :name="name" :value="{
-                name: option.name, event_id: option.event_id
-            }" :id="option.event_id" :checked="modelValue.some(item => isEqual(item, {
+                            name: option.name, event_id: option.event_id
+                        }" :id="option.event_id" :checked="modelValue.some(item => isEqual(item, {
                 name: option.name,
                 event_id: option.event_id
             }))" @change="updateSelection({
@@ -220,15 +220,15 @@ const truefalseOptions = [
                 event_id: option.event_id
             })) }} -->
                 <div v-if="modelValue.some(item => isEqual(item, {
-                name: option.name,
-                event_id: option.event_id
-            }))" class="w-3/4 ml-4">
-                    {{ fieldNameMetadata.element_type }}
-                    <div id="responses" class="border-l border-white">
+                    name: option.name,
+                    event_id: option.event_id
+                }))" class="w-3/4 ml-4">
+                    <!-- {{ fieldNameMetadata.element_type }} -->
+                    <div id="responses" class="px-5 border-l border-orange-500">
                         <div id="fromSelect" v-if="fieldNameMetadata.element_type == 'select' ||
-                fieldNameMetadata.element_type == 'radio' ||
-                fieldNameMetadata.element_type == 'checkbox'
-                ">
+                            fieldNameMetadata.element_type == 'radio' ||
+                            fieldNameMetadata.element_type == 'checkbox'
+                        ">
                             <div class="py-5 italic text-teal-500 font-extralight">
                                 If you want records for all responses on this item, do not select any options below,
                                 just ignore.
@@ -243,11 +243,10 @@ const truefalseOptions = [
                                                 :id="responseOption.value"
                                                 :checked="modelValue.find(item => item.event_id === option.event_id)?.query.collection.includes(responseOption.value)"
                                                 @change="updateQuery('collection', $event.target.checked
-                ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
-                : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
-                { name: option.name, event_id: option.event_id }
-            )"
-                                                class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                                                    ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
+                                                    : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
+                                                    { name: option.name, event_id: option.event_id }
+                                                )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                             <span class="ml-2" v-html="responseOption.name"></span>
                                         </label>
                                     </div>
@@ -266,11 +265,10 @@ const truefalseOptions = [
                                         :id="responseOption.value"
                                         :checked="modelValue.find(item => item.event_id === option.event_id)?.query.collection.includes(responseOption.value)"
                                         @change="updateQuery('collection', $event.target.checked
-                ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
-                : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
-                { name: option.name, event_id: option.event_id }
-            )"
-                                        class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                                            ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
+                                            : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
+                                            { name: option.name, event_id: option.event_id }
+                                        )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                     <span class="ml-2" v-html="responseOption.name"></span>
                                 </label>
                             </div>
@@ -287,11 +285,10 @@ const truefalseOptions = [
                                         :id="responseOption.value"
                                         :checked="modelValue.find(item => item.event_id === option.event_id)?.query.collection.includes(responseOption.value)"
                                         @change="updateQuery('collection', $event.target.checked
-                ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
-                : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
-                { name: option.name, event_id: option.event_id }
-            )"
-                                        class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                                            ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
+                                            : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
+                                            { name: option.name, event_id: option.event_id }
+                                        )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                     <span class="ml-2" v-html="responseOption.name"></span>
                                 </label>
                             </div>
@@ -329,12 +326,12 @@ const truefalseOptions = [
                                     </div>
                                 </div>
                                 <div v-else-if="modelValue[0].query.operator == '=' ||
-                modelValue[0].query.operator == '<' ||
-                modelValue[0].query.operator == '<=' ||
-                modelValue[0].query.operator == '>' ||
-                modelValue[0].query.operator == '>=' ||
-                modelValue[0].query.operator == '!='
-                ">
+                                    modelValue[0].query.operator == '<' ||
+                                    modelValue[0].query.operator == '<=' ||
+                                    modelValue[0].query.operator == '>' ||
+                                    modelValue[0].query.operator == '>=' ||
+                                    modelValue[0].query.operator == '!='
+                                ">
                                     <input ref="input" type="number"
                                         class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                         :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
@@ -342,7 +339,7 @@ const truefalseOptions = [
                                 </div>
                                 <div v-else>
                                     The query <span class="italic font-light text-orange-500"> {{
-                modelValue[0].query.operator }} </span>
+                                        modelValue[0].query.operator }} </span>
                                     is not
                                     applicable to this field, please choose another.
                                 </div>
@@ -392,12 +389,12 @@ const truefalseOptions = [
                                             </div>
                                         </div>
                                         <div v-else-if="modelValue[0].query.operator == '=' ||
-                modelValue[0].query.operator == '<' ||
-                modelValue[0].query.operator == '<=' ||
-                modelValue[0].query.operator == '>' ||
-                modelValue[0].query.operator == '>=' ||
-                modelValue[0].query.operator == '!='
-                ">
+                                            modelValue[0].query.operator == '<' ||
+                                            modelValue[0].query.operator == '<=' ||
+                                            modelValue[0].query.operator == '>' ||
+                                            modelValue[0].query.operator == '>=' ||
+                                            modelValue[0].query.operator == '!='
+                                        ">
                                             <input ref="input" type="number"
                                                 class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                 :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
@@ -407,7 +404,7 @@ const truefalseOptions = [
                                         </div>
                                         <div v-else>
                                             The query <span class="italic font-light text-orange-500"> {{
-                modelValue[0].query.operator }}
+                                                modelValue[0].query.operator }}
                                             </span>
                                             is not
                                             applicable to this field, please choose another.
@@ -436,12 +433,12 @@ const truefalseOptions = [
                             <!--type = text but validation type is date-->
 
                             <div v-else-if="fieldNameMetadata.element_validation_type == 'date_dmy' ||
-                fieldNameMetadata.element_validation_type == 'date_dym' ||
-                fieldNameMetadata.element_validation_type == 'date_mdy' ||
-                fieldNameMetadata.element_validation_type == 'date_myd' ||
-                fieldNameMetadata.element_validation_type == 'date_ydm' ||
-                fieldNameMetadata.element_validation_type == 'date_ymd'
-                ">
+                                fieldNameMetadata.element_validation_type == 'date_dym' ||
+                                fieldNameMetadata.element_validation_type == 'date_mdy' ||
+                                fieldNameMetadata.element_validation_type == 'date_myd' ||
+                                fieldNameMetadata.element_validation_type == 'date_ydm' ||
+                                fieldNameMetadata.element_validation_type == 'date_ymd'
+                            ">
                                 <div class="gap-5 ">
                                     <div class="pb-5">
                                         <SelectInput
@@ -478,12 +475,12 @@ const truefalseOptions = [
                                             </div>
                                         </div>
                                         <div v-else-if="modelValue[0].query.operator == '=' ||
-                modelValue[0].query.operator == '<' ||
-                modelValue[0].query.operator == '<=' ||
-                modelValue[0].query.operator == '>' ||
-                modelValue[0].query.operator == '>=' ||
-                modelValue[0].query.operator == '!='
-                ">
+                                            modelValue[0].query.operator == '<' ||
+                                            modelValue[0].query.operator == '<=' ||
+                                            modelValue[0].query.operator == '>' ||
+                                            modelValue[0].query.operator == '>=' ||
+                                            modelValue[0].query.operator == '!='
+                                        ">
                                             <input ref="input" type="date"
                                                 class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                 :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
@@ -493,7 +490,7 @@ const truefalseOptions = [
                                         </div>
                                         <div v-else>
                                             The query <span class="italic font-light text-orange-500"> {{
-                modelValue[0].query.operator }}
+                                                modelValue[0].query.operator }}
                                             </span>
                                             is not
                                             applicable to this field, please choose another.
@@ -504,8 +501,9 @@ const truefalseOptions = [
                             </div>
 
                             <div v-else>
-                                <div class="flex gap-5">
-                                    <div>
+                                <div class="">
+                                    <div class="flex gap-5 pb-5">
+                                      <div>
                                         <SelectInput
                                             :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
                                             @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
@@ -519,6 +517,20 @@ const truefalseOptions = [
                                                 </option>
                                             </template>
                                         </SelectInput>
+                                      </div>
+                                        <div v-if="modelValue[0].query.operator != 'LIKE'">
+                                            {{ modelValue[0] }}
+                                            <div>
+                                                We are nost sure if  <span class="italic font-light text-orange-500"> {{
+                                                    modelValue[0].query.operator }}
+                                                </span>
+                                                is the best operator
+                                                applicable to this field. We suggest for this
+                                               using <span class="px-1 italic font-light text-orange-500"> Contains
+                                                </span> which is basically a for text search. However if your data if of type <span class="px-1 italic font-light text-orange-500">FLOAT, DECIMAL or INTEGER
+                                                </span> then it will do.
+                                            </div>
+                                        </div>
                                     </div>
                                     <div v-if="modelValue[0].query.operator == 'LIKE'">
                                         <input ref="input" type="text"
@@ -529,13 +541,48 @@ const truefalseOptions = [
                                             @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
                                     </div>
                                     <div v-else>
-                                        The query <span class="italic font-light text-orange-500"> {{
-                modelValue[0].query.operator }}
-                                        </span>
-                                        is not
-                                        applicable to this field, please choose another. We suggest for this field type,
-                                        to use <span class="italic font-light text-orange-500"> Contains
-                                        </span> to search the column for text which contains the text you entered.
+                                        <div class="gap-5">
+                                            <div>
+                                                <div class="flex gap-5"
+                                                    v-if="modelValue[0].query.operator == 'BETWEEN'">
+                                                    <div>
+                                                        <input ref="input" type="number"
+                                                            class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                            @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'min')">
+                                                    </div>
+                                                    <div class="py-2 ">
+                                                        AND
+                                                    </div>
+                                                    <div>
+                                                        <input ref="input" type="number"
+                                                            class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                            @input="updateInputBetweenQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id }, 'max')">
+                                                    </div>
+                                                </div>
+                                                <div v-else-if="modelValue[0].query.operator == '=' ||
+                                                    modelValue[0].query.operator == '<' ||
+                                                    modelValue[0].query.operator == '<=' ||
+                                                    modelValue[0].query.operator == '>' ||
+                                                    modelValue[0].query.operator == '>=' ||
+                                                    modelValue[0].query.operator == '!='
+                                                ">
+                                                    <input ref="input" type="number"
+                                                        class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                        :value="modelValue.find(item => item.event_id === option.event_id)?.query.collection"
+                                                        @input="updateInputQuery('collection', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                                </div>
+                                                <div v-else>
+                                                    The query <span class="italic font-light text-orange-500"> {{
+                                                        modelValue[0].query.operator }}
+                                                    </span>
+                                                    is not
+                                                    applicable to this field, please choose another.
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
 
                                 </div>
