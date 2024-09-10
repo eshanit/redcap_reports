@@ -102,6 +102,22 @@ watch(form, throttle(function () {
     deep: true
 })
 
+
+
+const uniqueValues = computed(() => {
+    let recordList = [];
+
+    props.records.forEach((record: any) => {
+        recordList.push(record.record);
+    })
+
+    const uniqueValuesSet = new Set(Object.values(recordList));
+
+    // Convert the Set back to an array
+    return Array.from(uniqueValuesSet);
+
+})
+
 const back = () => {
     window.history.back();
 }
@@ -144,16 +160,39 @@ const back = () => {
 
         <div class="py-12">
             <div class="max-w-full mx-auto sm:px-6 lg:px-8">
-
+                <!-- <pre>
+            {{ records }}
+        </pre> -->
                 <div class="overflow-hidden bg-white shadow-xl sm:rounded-lg">
                     <div>
                         <div class="p-20">
-                            <div class="flex justify-end pb-5">
+                            <div class="flex justify-between pb-5">
+                                <div class="flex gap-5 px-10 text-3xl">
+                                    <div>
+                                        <span class="text-orange-500">{{ numberWithSpaces(records.length) }} </span>
+                                        <span v-if="records.length == 1">
+                                            Record
+                                        </span>
+                                        <span v-else>
+                                            Records
+                                        </span>
+                                    </div>
+                                    <div>|</div>
+                                    <div class="text-3xl ">
+                                        <span class="text-green-500">{{ uniqueValues.length }} </span> Unique   <span v-if="uniqueValues.length == 1">
+                                            Record
+                                        </span>
+                                        <span v-else>
+                                            Records
+                                        </span>
+                                    </div>
+
+                                </div>
                                 <SecondaryButton @click="downloadCsv()">
-                                Download CSV
-                            </SecondaryButton>
+                                    Download CSV
+                                </SecondaryButton>
                             </div>
-                           
+
                             <div class="ag-theme-quartz" style="height: 800px; width: 100%;">
                                 <AgGridVue :columnDefs="columnDefs" :rowData="rowData" :pagination="true"
                                     :paginationPageSize="100" :defaultColDef="{ flex: 1, minWidth: 100 }"
