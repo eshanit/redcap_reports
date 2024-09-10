@@ -7,7 +7,8 @@ const props = defineProps({
     modelValue: Array,
     options: {
         type: Array,
-        required: true
+        required: true,
+        defauly: []
     },
     name: {
         type: String,
@@ -133,6 +134,10 @@ watch(props.modelValue, (newValue) => {
 
 const operatorOptions = [
     {
+        name: 'All',
+        value: 'ALL'
+    },
+    {
         name: 'Equal to (=)',
         value: '='
     },
@@ -197,7 +202,7 @@ const truefalseOptions = [
 ]
 </script>
 <template>
-    <div ref="checkboxGroup" class="flex flex-col">
+    <div ref="checkboxGroup" class="flex flex-col" v-if="options">
         <!-- {{ options }} -->
         <div class="grid grid-cols-1 gap-5 py-5">
             <div class="flex items-center mb-2 cursor-pointer" v-for="option in options" :key="option.event_id">
@@ -206,19 +211,15 @@ const truefalseOptions = [
                         <input type="checkbox" :name="name" :value="{
                             name: option.name, event_id: option.event_id
                         }" :id="option.event_id" :checked="modelValue.some(item => isEqual(item, {
-                name: option.name,
-                event_id: option.event_id
-            }))" @change="updateSelection({
+                            name: option.name,
+                            event_id: option.event_id
+                        }))" @change="updateSelection({
                 name: option.name,
                 event_id: option.event_id
             })" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                         <span class="ml-2">{{ option.name }}</span>
                     </label>
                 </div>
-                <!-- {{ modelValue.some(item => isEqual(item, {
-                name: option.name,
-                event_id: option.event_id
-            })) }} -->
                 <div v-if="modelValue.some(item => isEqual(item, {
                     name: option.name,
                     event_id: option.event_id
@@ -246,7 +247,8 @@ const truefalseOptions = [
                                                     ? [...(modelValue.find(item => item.event_id === option.event_id)?.query.collection || []), responseOption.value]
                                                     : (modelValue.find(item => item.event_id === option.event_id)?.query.collection || []).filter(q => q !== responseOption.value),
                                                     { name: option.name, event_id: option.event_id }
-                                                )" class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
+                                                )"
+                                                class="text-blue-600 transition duration-150 ease-in-out form-checkbox" />
                                             <span class="ml-2" v-html="responseOption.name"></span>
                                         </label>
                                     </div>
@@ -503,31 +505,33 @@ const truefalseOptions = [
                             <div v-else>
                                 <div class="">
                                     <div class="flex gap-5 pb-5">
-                                      <div>
-                                        <SelectInput
-                                            :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
-                                            @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
-                                            <template #options>
-                                                <option :value="operator.value" v-for="operator in operatorOptions"
-                                                    class="">
-                                                    <span
-                                                        class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
-                                                        {{ operator.name }}
-                                                    </span>
-                                                </option>
-                                            </template>
-                                        </SelectInput>
-                                      </div>
+                                        <div>
+                                            <SelectInput
+                                                :value="modelValue.find(item => item.event_id === option.event_id)?.query.operator"
+                                                @input="updateQuery('operator', $event.target.value, { name: option.name, event_id: option.event_id })">
+                                                <template #options>
+                                                    <option :value="operator.value" v-for="operator in operatorOptions"
+                                                        class="">
+                                                        <span
+                                                            class="text-sm italic font-thin text-gray-400 cursor-pointer py-1.5">
+                                                            {{ operator.name }}
+                                                        </span>
+                                                    </option>
+                                                </template>
+                                            </SelectInput>
+                                        </div>
                                         <div v-if="modelValue[0].query.operator != 'LIKE'">
                                             {{ modelValue[0] }}
                                             <div>
-                                                We are nost sure if  <span class="italic font-light text-orange-500"> {{
+                                                We are nost sure if <span class="italic font-light text-orange-500"> {{
                                                     modelValue[0].query.operator }}
                                                 </span>
                                                 is the best operator
                                                 applicable to this field. We suggest for this
-                                               using <span class="px-1 italic font-light text-orange-500"> Contains
-                                                </span> which is basically a for text search. However if your data if of type <span class="px-1 italic font-light text-orange-500">FLOAT, DECIMAL or INTEGER
+                                                using <span class="px-1 italic font-light text-orange-500"> Contains
+                                                </span> which is basically a for text search. However if your data if of
+                                                type <span class="px-1 italic font-light text-orange-500">FLOAT, DECIMAL
+                                                    or INTEGER
                                                 </span> then it will do.
                                             </div>
                                         </div>

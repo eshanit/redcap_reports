@@ -121,19 +121,28 @@ const postExceptionArray = (selectedArray: any) => {
                 {{ element.index }}
               </div>
               <div class="grid col-span-4">
-                <div class="flex gap-2">
-                  <span class="italic font-bold text-orange-500">{{ element.field_name }}</span>
-                  <span>values</span>
-                  <span class="text-blue-500">{{ element.operator }}</span>
-                  <span class="italic text-orange-500">
-                    {{ element.operator === 'BETWEEN' ? element.values[0].min : handleQueryArrays(element.values) }}
-                  </span>
-                  <span class="text-blue-500" v-if="element.operator === 'BETWEEN'">AND</span>
-                  <span class="italic text-orange-500" v-if="element.operator === 'BETWEEN'">{{ element.values[0].max
-                    }}</span>
-                  <span>for event</span>
-                  <span class="italic text-orange-500">{{ element.event_name }}</span>
+                <div >
+                  <div class="flex gap-2.5" v-if="element.operator != 'ALL'">
+                    <span class="italic font-bold text-orange-500">{{ element.field_name }}</span>
+                    <span>values</span>
+                    <span class="text-blue-500">{{ element.operator }}</span>
+                    <span class="italic text-orange-500">
+                      {{ element.operator === 'BETWEEN' ? element.values[0].min : handleQueryArrays(element.values) }}
+                    </span>
+                    <span class="text-blue-500" v-if="element.operator === 'BETWEEN'">AND</span>
+                    <span class="italic text-orange-500" v-if="element.operator === 'BETWEEN'">{{ element.values[0].max
+                      }}</span>
+                    <span>for event</span>
+                    <span class="italic text-orange-500">{{ element.event_name }}</span>
+                  </div>
+                  <div class=" flex gap-2.5" v-else>
+                    <span class="italic text-orange-500">{{ element.event_name }}</span>
+                     for 
+                    <span class="italic font-bold text-orange-500">{{ element.field_name }}</span>
+                   
+                  </div>
                 </div>
+
               </div>
               <div class="grid col-span-1">
                 <div>
@@ -166,7 +175,8 @@ const postExceptionArray = (selectedArray: any) => {
         </div>
       </div>
       <div class="grid grid-cols-1 gap-5 pt-5">
-        <div id="union" class="p-5 bg-white border rounded-lg shadow-xl " v-if="(droppedIntersectionItems.length + droppedExceptionItems.length) == 0 ">
+        <div id="union" class="p-5 bg-white border rounded-lg shadow-xl "
+          v-if="(droppedIntersectionItems.length + droppedExceptionItems.length) == 0">
           <div class="flex gap-5 font-bold text-orange-500 ">
             UNION DROPZONE <span class="">
               <SetAllIcon size="35" />
@@ -192,7 +202,8 @@ const postExceptionArray = (selectedArray: any) => {
           </div>
         </div>
 
-        <div id="intersection" class="p-5 bg-white border rounded-lg shadow-xl " v-if="(droppedUnionItems.length + droppedExceptionItems.length) == 0 ">
+        <div id="intersection" class="p-5 bg-white border rounded-lg shadow-xl "
+          v-if="(droppedUnionItems.length + droppedExceptionItems.length) == 0">
           <div class="flex gap-5 font-bold text-orange-500">
             INTERSECTION DROPZONE
             <SetCenterIcon size="35" />
@@ -219,7 +230,8 @@ const postExceptionArray = (selectedArray: any) => {
           </div>
         </div>
 
-        <div id="intersection" class="p-5 bg-white border rounded-lg shadow-xl " v-if="(droppedIntersectionItems.length + droppedUnionItems.length) == 0 ">
+        <div id="intersection" class="p-5 bg-white border rounded-lg shadow-xl "
+          v-if="(droppedIntersectionItems.length + droppedUnionItems.length) == 0">
           <div class="flex gap-5 font-bold text-orange-500">
             EXCEPT DROPZONE
             <SetLeftIcon size="35" />

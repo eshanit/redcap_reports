@@ -17,13 +17,12 @@ const props = defineProps<{
 
 const events = ref<Record<string, any[]>>({}); // Store events for each field
 const selectedEvents = ref<Array<any>>([]); // Store selected events for each field
-const dataModel = ref<Array<string>>([]); // Store data models for each field
+
 /***-  */
 props.fields.forEach((selectedField) => {
     selectedEvents.value.push({
         [selectedField]: []
     });
-    dataModel.value.push('events'); // Ini
 });
 
 const emit = defineEmits(['selected']);
@@ -45,11 +44,14 @@ watch(() => props.fields, async (newFields) => {
     await Promise.all(newFields.map(fieldName => getEventsForField(fieldName)));
 
     /** - **/
-    selectedEvents.value = newFields.map(fieldName => ({
-        [fieldName]: []
-    }
-));
-dataModel.value.push('events'); // Ini
+    selectedEvents.value = []
+    
+    newFields.forEach((selectedField) => {
+        selectedEvents.value.push({
+            [selectedField]: []
+        });
+    });
+
 
 }, { immediate: true }); // Fetch immediately on mount with initial fields
 
@@ -64,7 +66,7 @@ const dataOptions = [
     }
 ]
 
-
+const dataModel = ref('events');
 
 const allData = [
     {
@@ -81,7 +83,6 @@ watch(() => selectedEvents, (newValue) => {
 
 </script>
 <template>
-
     <div class="grid grid-cols-2 gap-5">
         <div v-if="fields.length">
             <div class="p-5 " v-for="(fieldName, i) in fields" :key="i">
@@ -89,18 +90,18 @@ watch(() => selectedEvents, (newValue) => {
                     <div class="flex justify-between">
                         <div class="py-5 text-lg font-bold text-green-500">{{ fieldName }}</div>
                         <div class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <VueSelect v-model="dataModel[i]" :options="dataOptions" placeholder="Select an option" />
+                            <VueSelect v-model="dataModel" :options="dataOptions" placeholder="Select an option" />
                         </div>
                     </div>
-                    {{ dataModel }}
+
                     <!-- Render the events for each field -->
-                    <div v-if="dataModel[i] === 'events'">
+                    <div v-if="dataModel == 'events'">
                         <div v-if="events[fieldName]?.length">
-                            <!-- {{ metadataByField[fieldName] }} -->
+                            {{ metadataByField[fieldName] }}
                             <div class="">
                                 <div class="px-1.5">
                                     <FieldCheckboxInput 
-                                    :name="fieldName" v-model="selectedEvents[i][fieldName]"
+                                    name="fieldName" v-model="selectedEvents[i][fieldName]"
                                         :options="events[fieldName]"
                                         :field-name-metadata="metadataByField[fieldName][0]" />
                                 </div>
@@ -116,7 +117,7 @@ watch(() => selectedEvents, (newValue) => {
                     </div>
                     <div v-else>
                         <div class="px-1.5">
-                            <FieldCheckboxInputAllEvents :name="fieldName" v-model="selectedEvents[i][fieldName]"
+                            <FieldCheckboxInputAllEvents name="fieldName" v-model="selectedEvents[i][fieldName]"
                                 :options="allData" :field-name-metadata="metadataByField[fieldName][0]" />
                         </div>
                     </div>

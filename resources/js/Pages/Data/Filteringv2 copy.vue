@@ -5,7 +5,7 @@ import CheckboxInput from '@/Components/CheckboxInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import { Ref, ref } from 'vue';
-import FieldNameEvents from './FieldNameEvents.vue'
+import FieldNameEvents from './FieldNameEvents_V2.vue'
 
 const showDropdown: Ref<Boolean> = ref(false);
 

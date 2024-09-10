@@ -5,10 +5,6 @@ import pickBy from 'lodash/pickBy';
 import throttle from 'lodash/throttle';
 import mapValues from 'lodash/mapValues';
 import Pagination from '@/Components/Pagination.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import ArrowUpIcon from 'vue-material-design-icons/ArrowUp.vue';
-import ArrowDownIcon from 'vue-material-design-icons/ArrowDown.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import numberWithSpaces from '@/Utilities/numberWithSpaces';
 import SearchFilter from '@/Components/SearchFilter.vue'

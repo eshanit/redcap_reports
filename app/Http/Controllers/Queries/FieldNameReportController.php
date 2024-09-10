@@ -25,9 +25,6 @@ class FieldNameReportController extends Controller
             })
             ->addSelect(['event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')->take(1)]);
 
-
-
-
         $mapEventToId = $reportData->get()->map(fn($data) => [
             'event_id' => $data->event_id,
             'event' => $data->event

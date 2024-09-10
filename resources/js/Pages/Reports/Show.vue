@@ -49,11 +49,9 @@ const back = () => {
                         reportData.data[0].field_name }}</span>)
                 </div>
             </div>
- 
+
         </template>
-        <pre>
-    <!-- {{ reportData }} -->
-</pre>
+
         <div class="sm:px-6 lg:px-8">
             <div class="mx-auto">
                 <ul class="flex justify-center space-x-2 text-white">
@@ -72,7 +70,7 @@ const back = () => {
                     <li>
                         <button @click="setActiveTab('eventInsights')" :class="tabClass('eventInsights')"
                             class="inline-block px-4 py-2 transition duration-300 ease-in-out transform rounded-t-lg hover:scale-105">
-                            Events Insights 
+                            Events Insights
                         </button>
                     </li>
                 </ul>
@@ -83,24 +81,17 @@ const back = () => {
                     </div>
                     <div v-show="activeTab === 'insights'">
                         <!-- Insights Content -->
-                        <SurveyItemDataInsights 
-                            :report-data="reportData" 
-                            :value-counts="valueCounts"
-                            :values="values"
-                            />
+                        <SurveyItemDataInsights :report-data="reportData" :value-counts="valueCounts"
+                            :values="values" />
                     </div>
                     <div v-show="activeTab === 'eventInsights'">
                         <!-- Data List Content -->
-                        <SurveyEventDataInsights 
-                            :report-data="reportData" 
-                            :value-counts="valueCounts"
-                            :map-event-to-id="mapEventToId"
-                            :values="values"
-                            :value-counts-by-event-id="valueCountsByEventId"
-                            />
-              
+                        <SurveyEventDataInsights :report-data="reportData" :value-counts="valueCounts"
+                            :map-event-to-id="mapEventToId" :values="values"
+                            :value-counts-by-event-id="valueCountsByEventId" />
+
                     </div>
-                    
+
                 </div>
             </div>
         </div>

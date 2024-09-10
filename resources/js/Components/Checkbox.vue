@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { defineModel } from 'vue';
+
 
 const emit = defineEmits(['update:checked']);
 
@@ -23,6 +23,6 @@ const modelValue = defineModel('checked');
         v-model="modelValue"
         type="checkbox"
         :value="value"
-        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+        class="text-indigo-600 border-gray-300 rounded shadow-sm focus:ring-indigo-500"
     >
 </template>

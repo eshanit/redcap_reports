@@ -28,7 +28,7 @@ class ProcessFilterQueryRequest extends FormRequest
             'event_name' => ['required','string'],
             'event_id' => ['required','integer'],
             'values' => ['required','array'],
-            'operator' => ['required',Rule::in(['OR','BETWEEN','LIKE','AND','>','<','=','>=','<=','!='])],
+            'operator' => ['required',Rule::in(['OR','BETWEEN','LIKE','AND','ALL','>','<','=','>=','<=','!='])],
         ];
     }
 }

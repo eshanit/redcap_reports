@@ -11,7 +11,7 @@ use App\Http\Requests\Queries\ProcessFilterQueryRequest;
 use Inertia\Inertia;
 
 
-class ProcessFilteredQueryController extends Controller
+class ProcessFilteredQueryControllerCopy extends Controller
 {
     /**
      * Handle the incoming request.
@@ -37,8 +37,10 @@ class ProcessFilteredQueryController extends Controller
                     ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
                     ->where('project_id', $projectId)
                     ->where('field_name', $queryData['field_name'])
-                    ->get()
-                    ->map(fn($project) => [
+                    ->filter(Request::only('search', 'trashed'))
+                    ->paginate(25)
+                    ->withQueryString()
+                    ->through(fn($project) => [
                         'record' => $project->record,
                         'event' => [
                             'id' => $project->event_id,
@@ -56,8 +58,10 @@ class ProcessFilteredQueryController extends Controller
                     ->where('project_id', $projectId)
                     ->where('event_id', $queryData['event_id'])
                     ->where('field_name', $queryData['field_name'])
-                    ->get()
-                    ->map(fn($project) => [
+                    ->filter(Request::only('search', 'trashed'))
+                    ->paginate(25)
+                    ->withQueryString()
+                    ->through(fn($project) => [
                         'record' => $project->record,
                         'event' => [
                             'id' => $project->event_id,
@@ -89,8 +93,10 @@ class ProcessFilteredQueryController extends Controller
                             return $query->where('value', $queryData['operator'], $queryData['values'][0]);
                         }
                     })
-                    ->get()
-                    ->map(fn($project) => [
+                    ->filter(Request::only('search', 'trashed'))
+                    ->paginate(25)
+                    ->withQueryString()
+                    ->through(fn($project) => [
                         'record' => $project->record,
                         'event' => [
                             'id' => $project->event_id,
@@ -120,8 +126,10 @@ class ProcessFilteredQueryController extends Controller
                             return $query->where('value', $queryData['operator'], $queryData['values'][0]);
                         }
                     })
-                    ->get()
-                    ->map(fn($project) => [
+                    ->filter(Request::only('search', 'trashed'))
+                    ->paginate(25)
+                    ->withQueryString()
+                    ->through(fn($project) => [
                         'record' => $project->record,
                         'event' => [
                             'id' => $project->event_id,
@@ -134,7 +142,7 @@ class ProcessFilteredQueryController extends Controller
             }
         }
 
-//dd($records);
+
 
 
         //
