@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('redcap_data', function (Blueprint $table) {
-            //
+        Schema::create('project_customization', function (Blueprint $table) {
             $table->id();
+            $table->integer('project_id');
+            $table->string('customization_name');
+            $table->string('path');
+            $table->integer('tag');
+            $table->timestamps();
         });
     }
 
@@ -22,9 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('redcap_data', function (Blueprint $table) {
-            //
-            $table->id();
-        });
+        Schema::dropIfExists('project_customization');
     }
 };

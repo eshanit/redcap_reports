@@ -10,7 +10,7 @@ use Illuminate\Http\Request as InputRequest;
 use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
-class UnionFilteredQueryController extends Controller
+class UnionFilteredQueryControllerCopy extends Controller
 {
     public function __invoke(string $projectId, string $type, InputRequest $request)
     {

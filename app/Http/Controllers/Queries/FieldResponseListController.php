@@ -26,10 +26,8 @@ class FieldResponseListController extends Controller
             ->where('project_id', $projectId)
             ->where('field_name', $fieldName)
             ->where('value', $value)
-            ->filter(Request::only('search', 'trashed'))
-            ->paginate(25)
-            ->withQueryString()
-            ->through(fn($project) => [
+            ->get()
+            ->map(fn($project) => [
                 'record' => $project->record,
                 'event' => [
                     'id' => $project->event_id,

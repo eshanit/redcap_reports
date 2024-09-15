@@ -27,10 +27,8 @@ class FieldEventResponseListController extends Controller
             ->where('event_id', $eventId)
             ->where('field_name', $fieldName)
             ->where('value', $value)
-            ->filter(Request::only('search', 'trashed'))
-            ->paginate(25)
-            ->withQueryString()
-            ->through(fn($record) => [
+            ->get()
+            ->map(fn($record) => [
                 'record' => $record->record,
                 'event' => [
                     'id' => $record->event_id,

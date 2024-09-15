@@ -30,11 +30,7 @@ const tabClass = (tab) => {
     return activeTab.value === tab ? 'bg-blue-500' : 'bg-gray-500';
 };
 
-
-
 ///
-
-
 
 const props = defineProps<{
     records: any,

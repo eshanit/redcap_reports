@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Customized\DashboardController;
+use App\Http\Controllers\Customized\NCD\AppointmentsReviewController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ProjectDataReportingController;
 use App\Http\Controllers\Queries\FieldFilteringController;
@@ -61,5 +63,9 @@ Route::middleware([
     Route::get('project/{projectId}/fieldname/{fieldName}/events',GetEventsController::class)->name('events-survey'); //no view
     Route::get('project/{projectId}/record/{record}/fieldname/{fieldName}', GetRespondentEventsFieldDataController::class)->name('record-field-project');
     Route::get('project/{projectId}/record/{recordId}/tracking', RepondentRecordTrackingController::class)->name('record-tracking');
-   
+
+    //Custom Pages
+    Route::get('project/{projectId}/custom-pages', [DashboardController::class,'read'])->name('custom-pages');
+    //NCD
+    Route::get('project/{projectId}/custom-pages/appointment-reviews',AppointmentsReviewController::class)->name('appointment-reviews');
 });

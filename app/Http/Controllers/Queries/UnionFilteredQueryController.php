@@ -58,9 +58,8 @@ class UnionFilteredQueryController extends Controller
         //dd($baseQuery->count());
         // Apply filters and paginate
         $records = $baseQuery
-            ->paginate($baseQuery->count())
-            ->withQueryString($baseQuery->count() + 5)
-            ->through(fn($project) => [
+            ->get()
+            ->map(fn($project) => [
                 'record' => $project->record,
                 'event' => [
                     'id' => $project->event_id,
@@ -72,7 +71,7 @@ class UnionFilteredQueryController extends Controller
             ]);
 
 
-        return Inertia::render('Data/UnPaginatedList', [
+        return Inertia::render('Data/Union/List', [
             'filters' => Request::all('search', 'sort'),
             'records' => $records,
             'project_id' => $projectId,

@@ -1,0 +1,14 @@
+NCD data cleaning algorithm:
+
+1. Remove all data which is not of that facility
+	- DELETE from redcap_data where project_id = 59 and not record like 'MPH%';
+	
+2. Now that you are left with data for that facility, there is data with old event_id's
+   so check new event_ids
+   - SELECT * FROM redcap_events_metadata where arm_id = '114'; 
+   this will give you a range of events 
+   
+3. Now delete all records who are not in the event range:
+	- DELETE FROM redcap_data where project_id = 59 and event_id < 5641;
+	
+	done:
