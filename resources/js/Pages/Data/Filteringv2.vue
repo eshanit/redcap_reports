@@ -93,12 +93,6 @@ const showFieldsButtonText = computed(()=> {
                     </div>
 
                 </div>
-
-                <div class="flex justify-end py-10" @click="showDropdown = true">
-                    <PrimaryButton>
-                        Next
-                    </PrimaryButton>
-                </div>
             </div>
 
         </div>

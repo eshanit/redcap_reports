@@ -92,7 +92,7 @@ watch(() => selectedEvents, (newValue) => {
                             <VueSelect v-model="dataModel[i]" :options="dataOptions" placeholder="Select an option" />
                         </div>
                     </div>
-                    {{ dataModel }}
+                    <!-- {{ dataModel }} -->
                     <!-- Render the events for each field -->
                     <div v-if="dataModel[i] === 'events'">
                         <div v-if="events[fieldName]?.length">

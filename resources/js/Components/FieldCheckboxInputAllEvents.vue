@@ -506,7 +506,7 @@ const truefalseOptions = [
                                             </SelectInput>
                                         </div>
                                         <div v-if="modelValue[0].query.operator != 'LIKE'">
-                                            {{ modelValue[0] }}
+                                            <!-- {{ modelValue[0] }} -->
                                             <div>
                                                 We are nost sure if <span class="italic font-light text-orange-500"> {{
                                                     modelValue[0].query.operator }}

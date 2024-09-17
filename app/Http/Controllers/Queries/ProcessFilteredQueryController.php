@@ -18,7 +18,7 @@ class ProcessFilteredQueryController extends Controller
      */
     public function __invoke(string $projectId, ProcessFilterQueryRequest $request)
     {
-       //dd($request->all());
+
         //
         $queryData = $request->validated();
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
@@ -32,6 +32,9 @@ class ProcessFilteredQueryController extends Controller
         if ($queryData['operator'] == 'ALL') {
 
             if ($queryData['event_id'] == 0) {
+
+                $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field from all events";
+
                 $records = QueryBuilder::for(ProjectData::class)
                     ->with(['project_event_metadata', 'projects.project_metadata'])
                     ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
@@ -49,6 +52,9 @@ class ProcessFilteredQueryController extends Controller
                         'form_name' => $project->projects->project_metadata->first()->form_name,
                     ]);
             } else {
+
+                $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field.These values are 
+                only from event " . $queryData['event_name'];
 
                 $records = QueryBuilder::for(ProjectData::class)
                     ->with(['project_event_metadata', 'projects.project_metadata'])
@@ -71,6 +77,19 @@ class ProcessFilteredQueryController extends Controller
         } else {
 
             if ($queryData['event_id'] == 0) {
+
+                if ($queryData['operator'] === 'BETWEEN') {
+                    $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field which are " . $queryData['operator'] . " " . $queryData['values'][0]['min'] . " and " . $queryData['values'][0]['max'] . "These values are 
+                    only from all events";
+                } elseif ($queryData['operator'] === 'LIKE') {
+                    $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field which contains the text " . $queryData['values'][0] . ".These values are 
+                    only from all events";
+                } else {
+                    $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field which are " . $queryData['operator'] . " " . $queryData['values'][0] . ".These values are 
+                    only from all events";
+                }
+
+
                 $records = QueryBuilder::for(ProjectData::class)
                     ->with(['project_event_metadata', 'projects.project_metadata'])
                     ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
@@ -102,6 +121,19 @@ class ProcessFilteredQueryController extends Controller
                     ]);
             } else {
 
+                if ($queryData['operator'] === 'BETWEEN') {
+                    $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field which are " . $queryData['operator'] . ". " . $queryData['values'][0]['min'] . " and " . $queryData['values'][0]['max'] . "These values are 
+                    only from event " . $queryData['event_name'];
+                } elseif ($queryData['operator'] === 'LIKE') {
+
+                    $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field which contains " . $queryData['values'][0] . ".These values are 
+                only from event " . $queryData['event_name'];
+                } else {
+
+                    $queryDefinition = " The results are from field " . $queryData['field_name'] . " and we have pulled up all values for this field which are " . $queryData['operator'] . ". " . $queryData['values'][0] . ".These values are 
+                only from event " . $queryData['event_name'];
+                }
+
                 $records = QueryBuilder::for(ProjectData::class)
                     ->with(['project_event_metadata', 'projects.project_metadata'])
                     ->allowedSorts(['record', 'event_id', 'field_name', 'value', 'form_name'])
@@ -130,11 +162,12 @@ class ProcessFilteredQueryController extends Controller
                         'field_name' => $project->field_name,
                         'value' => $project->value,
                         'form_name' => $project->projects->project_metadata->first()->form_name,
+
                     ]);
             }
         }
 
-//dd($records);
+        //dd($records);
 
 
         //
@@ -146,7 +179,8 @@ class ProcessFilteredQueryController extends Controller
             'project_id' => $projectId,
             'field_name' => $queryData['field_name'],
             'value' => $queryData['values'],
-            'project' => $project
+            'project' => $project,
+            'queryDefinition' => $queryDefinition
         ]);
     }
 }

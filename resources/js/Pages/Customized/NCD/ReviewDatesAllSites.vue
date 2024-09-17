@@ -39,7 +39,7 @@ interface DataCounts {
 
     status_counts: {
         "Late": number;
-        "Not Late": number,
+        "Early": number,
         "On Time": number,
         "-": number
     }
@@ -59,7 +59,7 @@ const tabClass = (tab) => {
 
 const props = defineProps<{
     project: any,
-    data: Record<string, EventData>
+    data: Record<string, any>
     dataCounts: Record<string, DataCounts>
     latestData: Record<string, EventData>
     statusDistribution: Record<string, object>
@@ -77,33 +77,40 @@ const getStatusClass = (params: any) => {
             return 'text-red-500'; // Tailwind CSS class for red text
         case 'On Time':
             return 'text-sky-400'; // Tailwind CSS class for sky blue text
-        case 'Not Late':
+        case 'Early':
             return 'text-green-500'; // Tailwind CSS class for green text
         default:
             return '';
     }
 };
 
-const columnDefs = [
-    { headerName: 'Record ID', field: 'recordId', sortable: true, filter: true },
-    { headerName: 'Event ID', field: 'eventId', sortable: true, filter: true },
-    { headerName: 'Proposed Visit Date', field: 'lastVisitDate', sortable: true, filter: true },
-    { headerName: 'Actual Visit Date', field: 'nextReviewDate', sortable: true, filter: true },
-    { headerName: 'Status', field: 'status', sortable: true, filter: true, cellClass: getStatusClass },
-    { headerName: 'Date Difference', field: 'days_difference', sortable: true, filter: true },
-];
 
-const rowData = ref(Object.keys(props.data).flatMap(record => {
-    return Object.entries(props.data[record]).map(([eventId, eventData]) => (
-        {
-            recordId: record,
-            eventId: eventId,
-            lastVisitDate: eventData.proposed_appointment_date || '-',
-            nextReviewDate: eventData.actual_visit_date,
-            status: eventData.status,
-            days_difference: eventData.days_difference
-        }));
-}));
+const columnDefs = ref([
+  { headerName: 'Record', field: 'record', sortable: true, filter: true },
+  { headerName: 'Event', field: 'event', sortable: true, filter: true },
+  { headerName: 'Proposed Dates', field: 'proposed_dates', sortable: true, filter: true },
+  { headerName: 'Actual Dates', field: 'actual_dates', sortable: true, filter: true },
+  { headerName: 'Days Difference', field: 'days_difference', sortable: true, filter: true },
+  { headerName: 'Human Readable', field: 'human_readable', sortable: true, filter: true },
+  { headerName: 'Status', field: 'status', sortable: true, filter: true  ,cellClass: getStatusClass  }
+]);
+
+const rowData = ref([]);
+
+Object.keys(props.data).forEach(recordKey => {
+    const record = props.data[recordKey];
+    for (let i = 0; i < record.event_id.length; i++) {
+        rowData.value.push({
+            record: recordKey,
+            event: record.event[i],
+            proposed_dates: record.proposed_dates[i] || '-',
+            actual_dates: record.actual_dates[i] || '-',
+            days_difference: record.days_difference[i] || '-',
+            human_readable: record.human_readable[i] || '-',
+            status: record.status[i]
+        });
+    }
+});
 
 
 const rowDataLatest = ref(Object.keys(props.latestData).flatMap(record => {
@@ -313,7 +320,7 @@ const back = () => {
                                     </div>
                                     <div class="grid grid-cols-2 gap-5 py-2.5">
                                         <div> Not Late</div>
-                                        <div>{{ statusDistribution['Not Late'] }}</div>
+                                        <div>{{ statusDistribution['Early'] }}</div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-5 py-2.5">
                                         <div> - </div>
@@ -438,9 +445,9 @@ const back = () => {
                             <div v-if="recordTrend">
                                 <div class="pb-5 mb-4 text-xl font-bold ">Showing trend habits for <span
                                         class="text-green-400">{{ recordTrend.record }}</span></div>
-                                
-                                    <div class="gap-10 border-t " v-for="status in recordTrend.trend ">
-                                        <div class="grid grid-cols-2">
+
+                                <div class="gap-10 border-t " v-for="status in recordTrend.trend ">
+                                    <div class="grid grid-cols-2">
                                         <div class=" py-2.5">
                                             <div class="" v-if="status.date">{{ status.date }}</div>
                                             <div v-else> - </div>
@@ -450,10 +457,10 @@ const back = () => {
                                                 }}</span>
                                             <span class="text-green-400" v-else-if="status.status == 'Not Late'">{{
                                                 status.status
-                                                }}</span>
+                                            }}</span>
                                             <span class="text-sky-500" v-else-if="status.status == 'On Time'">{{
                                                 status.status
-                                                }}</span>
+                                            }}</span>
                                             <span v-else> -</span>
                                         </div>
                                     </div>

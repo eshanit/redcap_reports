@@ -33,6 +33,7 @@ const props = defineProps<{
     'field_name': string,
     'value': any,
     'project': any,
+    'queryDefinition': string,
 }>();
 
 interface RowData {
@@ -52,12 +53,12 @@ const form = ref({
 const rowData = ref<RowData[]>(props.records)
 
 const columnDefs = ref([
-    { headerName: "Record", field: "record" },
+    { headerName: "Record", field: "record", sortable: true, filter: true },
     {
-        headerName: "Event",
+        headerName: "Event", sortable: true, filter: true,
         valueGetter: (params: any) => params.data.event.name,
     },
-    { headerName: "Value", field: "value" },
+    { headerName: "Value", field: "value", sortable: true, filter: true },
     { headerName: "Form Name", field: "form_name" },
     {
         headerName: "View",
@@ -152,7 +153,7 @@ const back = () => {
                     <ChevronRightIcon :size="25" />
                 </div>
                 <div class="text-2xl text-orange-500">
-                    {{ field_name }}: queried data list
+                    {{ field_name }}
                 </div>
             </div>
 
@@ -166,7 +167,11 @@ const back = () => {
                 <div class="overflow-hidden bg-white shadow-xl sm:rounded-lg">
                     <div>
                         <div class="p-20">
-                            <div class="flex justify-between pb-5">
+                            <div class="p-10 bg-green-100 rounded-xl ">
+                                <div class="pb-5 text-xl font-bold text-teal-800">Data Definition</div>
+                                <div>{{ queryDefinition }}</div>
+                            </div>
+                            <div class="flex justify-between pt-10 pb-5">
                                 <div class="flex gap-5 px-10 text-3xl">
                                     <div>
                                         <span class="text-orange-500">{{ numberWithSpaces(records.length) }} </span>
