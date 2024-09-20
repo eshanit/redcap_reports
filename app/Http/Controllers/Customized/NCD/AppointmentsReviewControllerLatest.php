@@ -11,7 +11,7 @@ use Carbon\Carbon;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
-class AppointmentsReviewController extends Controller
+class AppointmentsReviewControllerLatest extends Controller
 {
     /**
      * Handle the incoming request.
@@ -49,15 +49,23 @@ class AppointmentsReviewController extends Controller
             });
 
         // Get proposed dates, shifting and popping elements
-        $resultsElements = $results->map(function ($eventGroups) {
+        $resultsEvents = $results->map(function ($eventGroups) {
             // Clone the event groups
             $clonedGroups = $eventGroups->map(function ($group) {
                 return collect($group); // Create a clone of each group
             });
-            return $clonedGroups->select('event_id', 'event', 'ncd_health_facility','ncd_tel_pat','ncd_tel_kin'); // Return proposed dates
+            return $clonedGroups->pluck('event_id'); // Return proposed dates
         });
 
-   
+        ///
+        $resultsEventNames = $results->map(function ($eventGroups) {
+            // Clone the event groups
+            $clonedGroups = $eventGroups->map(function ($group) {
+                return collect($group); // Create a clone of each group
+            });
+
+            return $clonedGroups->pluck('event'); // Return proposed dates
+        });
 
         // Get proposed dates, shifting and popping elements
         $resultsProposedDates = $results->map(function ($eventGroups) {
@@ -86,7 +94,7 @@ class AppointmentsReviewController extends Controller
         });
 
         //
-        $resultXY = $resultsElements->map(function ($item, $index) use ($resultsProposedDates, $resultsActualDates) {
+        $resultXY = $resultsEvents->map(function ($item, $index) use ($resultsProposedDates, $resultsActualDates, $resultsEventNames) {
 
             $proposedDates = $resultsProposedDates[$index];
             $actualDates = $resultsActualDates[$index];
@@ -151,17 +159,9 @@ class AppointmentsReviewController extends Controller
             //dd($proposedDates,  $actualDates);
             $statusDistribution = $status->filter()->countBy()->toArray();
 
-            $facility =  $item->pluck('ncd_health_facility')->toArray();
-            $patient_num = $item->pluck('ncd_tel_pat')->toArray();
-            $kin_num = $item->pluck('ncd_tel_kin')->toArray();
-           // dd($item->pluck('event_id'));
-
             return [
-                'event_id' => $item->pluck('event_id')->toArray(),
-                'event' => $item->pluck('event')->toArray(),
-                'facility' =>$facility[0],
-                'tel_pat' => $patient_num[0] ?? '-',
-                'tel_kin' => $kin_num[0] ?? '-',
+                'event_id' => $item->toArray(),
+                'event' => $resultsEventNames[$index]->toArray(),
                 'proposed_dates' => $resultsProposedDates[$index]->toArray(),
                 'actual_dates' => $resultsActualDates[$index]->toArray(),
                 'days_difference' => $dateDiffs->toArray(),
@@ -174,7 +174,7 @@ class AppointmentsReviewController extends Controller
 
 
 
-        //dd($resultXY['CHK0001']);
+        // dd($resultXY['CHK0001']);
 
         $statusDistribution = $this->getStatusDistribution($resultXY->toArray());
         //$averageDaysDifference = $this->getAverageDaysDifference($results);
@@ -191,7 +191,7 @@ class AppointmentsReviewController extends Controller
             [
                 'project' => $project,
                 'data' => $resultXY,
-                'dataCounts' => $trends,
+                'dataCounts' => [],
                 'latestData' =>  $latestVisits,
                 'statusDistribution' => $statusDistribution,
                 'averageDaysDifference' => [],
@@ -281,15 +281,12 @@ class AppointmentsReviewController extends Controller
             if (count($recordData['event_id']) >= 2) {
                 $transformedArray[$record]['event_id'] = $recordData['event_id'][$index];
                 $transformedArray[$record]['event'] = $recordData['event'][$index];
-                $transformedArray[$record]['facility'] = $recordData['facility'];
                 $transformedArray[$record]['proposed_dates'] = $recordData['proposed_dates'][$index];
                 $transformedArray[$record]['actual_dates'] = $recordData['actual_dates'][$index];
                 $transformedArray[$record]['days_difference'] = $recordData['days_difference'][$index];
                 $transformedArray[$record]['human_readable'] = $recordData['human_readable'][$index];
                 $transformedArray[$record]['diff_from_today'] = $recordData['diff_from_today'][$index];
                 $transformedArray[$record]['status'] = $recordData['status'][$index];
-                $transformedArray[$record]['tel_pat'] = $recordData['tel_pat'];
-                $transformedArray[$record]['tel_kin'] = $recordData['tel_kin'];
             }
         }
 
@@ -336,19 +333,12 @@ class AppointmentsReviewController extends Controller
 
         foreach ($results as $record => $recordData) {
             $trends[$record] = [];
-            $counts = array_count_values($recordData['status']);
-           // dd($counts);
+
             $trends[$record] = [
-                'Late Visits' => $counts['Late'] ?? 0,
-                'Early Visits' => $counts['Early'] ?? 0,
-                'On Time Visits' => $counts['On Time'] ?? 0,
-                'No Data' => $counts['-'] ?? 0,
-                'status' => $recordData['status'] ?? '-',
-                'date' => $recordData['proposed_dates'] ?? '-',
+                'status' => $recordData['status'],
+                'date' => $recordData['proposed_dates'],
             ];
         }
-
-        //dd($trends['CHK0001']);
 
         return $trends;
     }
@@ -366,23 +356,26 @@ class AppointmentsReviewController extends Controller
         $daysDifferenceNow = $nextReviewDate->diffForHumans();
         $daysDiffNow = $nextReviewDate->diffInDays();
 
-      // dd($recordData);
 
         if($nextReviewDate->isPast()){
 
-            $defaults[$record]['last_event'] = $recordData['event'];
-            $defaults[$record]['facility'] = $recordData['facility'];
+            $defaults[$record]['last_event'] = $recordData['event_id'];
+            $defaults[$record]['ncd_facility'] = $recordData['ncd_health_facility'];
             $defaults[$record]['proposed_appointment_date'] = $nextReviewDate->toDateString();
             $defaults[$record]['actual_dates'] = 'No Show';
-            $defaults[$record]['statusDefault'] = $daysDiffNow <= 183 ? 'Missed Appointment' : 'Defaulted' ;
+            $defaults[$record]['statusDefault'] = $daysDiffNow <= 183 ? 'Missed Appointment' : 'Defaulted';
             $defaults[$record]['days_difference'] = $daysDifferenceNow;
-            $defaults[$record]['tel_pat'] = $recordData['tel_pat'] ?? '-';
-            $defaults[$record]['tel_kin'] = $recordData['tel_kin'] ?? '-';
+            $defaults[$record]['ncd_tel_pat'] = $recordData['ncd_tel_pat'] ?? '-';
+            $defaults[$record]['ncd_tel_kin'] = $recordData['ncd_tel_kin'] ?? '-';
         }
 
+        dd($defaults);
+
        }
+
        
-       return $defaults;
+
+
 
     }
 

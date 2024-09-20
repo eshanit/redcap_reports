@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
@@ -9,6 +9,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS for AG Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme for AG Grid
 import transformObjectToArray from '@/Utilities/transformObjectToArray';
+import numberWithSpaces from '@/Utilities/numberWithSpaces';
 
 interface EventData {
     proposed_appointment_date: string | null; // Adjust the type as necessary
@@ -61,12 +62,12 @@ const props = defineProps<{
     project: any,
     data: Record<string, any>
     dataCounts: Record<string, DataCounts>
-    latestData: Record<string, EventData>
+    latestData: Record<string, any>
     statusDistribution: Record<string, object>
     averageDaysDifference: Record<string, any>
     upcomingAppointments: Record<string, EventData>
     lateAppointments: Record<string, EventData>
-    defaulters: Record<string, defaultersData>
+    defaulters: Record<string, any>
     trends: Record<string, any>
     eventAnalysis: Record<string, any>
 }>();
@@ -85,14 +86,15 @@ const getStatusClass = (params: any) => {
 };
 
 
+
 const columnDefs = ref([
-  { headerName: 'Record', field: 'record', sortable: true, filter: true },
-  { headerName: 'Event', field: 'event', sortable: true, filter: true },
-  { headerName: 'Proposed Dates', field: 'proposed_dates', sortable: true, filter: true },
-  { headerName: 'Actual Dates', field: 'actual_dates', sortable: true, filter: true },
-  { headerName: 'Days Difference', field: 'days_difference', sortable: true, filter: true },
-  { headerName: 'Human Readable', field: 'human_readable', sortable: true, filter: true },
-  { headerName: 'Status', field: 'status', sortable: true, filter: true  ,cellClass: getStatusClass  }
+    { headerName: 'Record', field: 'record', sortable: true, filter: true },
+    { headerName: 'Event', field: 'event', sortable: true, filter: true },
+    { headerName: 'Proposed Dates', field: 'proposed_dates', sortable: true, filter: true },
+    { headerName: 'Actual Dates', field: 'actual_dates', sortable: true, filter: true },
+    { headerName: 'Days Difference', field: 'days_difference', sortable: true, filter: true },
+    { headerName: 'Human Readable', field: 'human_readable', sortable: true, filter: true },
+    { headerName: 'Status', field: 'status', sortable: true, filter: true, cellClass: getStatusClass }
 ]);
 
 const rowData = ref([]);
@@ -112,43 +114,47 @@ Object.keys(props.data).forEach(recordKey => {
     }
 });
 
+//latest
 
-const rowDataLatest = ref(Object.keys(props.latestData).flatMap(record => {
-    return Object.entries(props.latestData[record]).map(([eventId, eventData]) => (
-        {
-            recordId: record,
-            eventId: eventId,
-            lastVisitDate: eventData?.proposed_appointment_date || '-',
-            nextReviewDate: eventData?.actual_visit_date,
-            status: eventData?.status,
-            days_difference: eventData?.days_difference
-        }));
-}));
+const rowDataLatest = ref(
+    Object.entries(props.latestData).map(([key, value]) => ({
+        record: key, // Add the record key
+        ...value      // Spread the rest of the value properties
+    }))
+);
 
-const rowDataLatestBeforeToday = ref(Object.keys(props.upcomingAppointments).flatMap(record => {
-    return Object.entries(props.upcomingAppointments[record]).map(([eventId, eventData]) => (
-        {
-            recordId: record,
-            eventId: eventId,
-            lastVisitDate: eventData.proposed_appointment_date || '-',
-            nextReviewDate: eventData.actual_visit_date,
-            status: eventData.status,
-            days_difference: eventData.days_difference
-        }));
-}));
+
+// UpComing Trends
+
+const columnDefUpComings = ref([
+    { headerName: 'Record', field: 'record', sortable: true, filter: true },
+    { headerName: 'Event', field: 'event', sortable: true, filter: true },
+    { headerName: 'Review Date', field: 'ncd_visit_date', sortable: true, filter: true },
+    { headerName: 'Next Review Date', field: 'ncd_next_review', sortable: true, filter: true },
+    { headerName: 'Time To Review', field: 'days_difference', sortable: true, filter: true, cellClass: "text-orange-500" },
+    { headerName: 'Status', field: 'status', sortable: true, filter: true, cellClass: "text-green-500" }
+]);
+
+
+const rowDataLatestBeforeToday = ref(
+    Object.entries(props.upcomingAppointments).map(([key, value]) => ({
+        record: key, // Add the record key
+        ...value      // Spread the rest of the value properties
+    }))
+);
 
 ///Statistics
 
 const recordTrend = ref();
 
 const rowDataAnalytics = ref(Object.entries(props.dataCounts).map(([key, record]) => {
-    const statusCounts = record.status_counts;
+    // const statusCounts = record.status_counts;
     return {
         recordId: key,
-        late: statusCounts.Late,
-        notLate: statusCounts['Not Late'],
-        onTime: statusCounts['On Time'],
-        dash: statusCounts['-']
+        late: record['Late Visits'],
+        notLate: record['Early Visits'],
+        onTime: record['On Time Visits'],
+        dash: record['No Data']
     };
 }));
 
@@ -173,26 +179,56 @@ const columnDefsAnalytics = [
 const viewRecord = (record: string) => {
     recordTrend.value = {
         record: record,
-        trend: props.trends[record]
+        trend: [{
+            status: props.trends[record].status,
+            date: props.trends[record].date
+        }]
     }
 };
 
 
 //defaulters
+
+const getDefaultedStatusClass = (params: any) => {
+    switch (params.value) {
+        case 'Missed Appointment':
+            return 'text-teal-500'; // Tailwind CSS class for red text
+        case 'Defaulted':
+            return 'text-rose-500'; // Tailwind CSS class for sky blue text
+        default:
+            return '';
+    }
+};
+
 const transformedRowData = ref(Object.entries(props.defaulters).map(([key, value]) => ({ key, ...value })));
 
 const columnDefsDefaulters = ref([
     { headerName: 'Record ID', valueGetter: 'data.key', sortable: true, filter: true, width: 150 },
     { headerName: 'Last Event', field: 'last_event', sortable: true, filter: true, width: 150 },
+    { headerName: 'Facility', field: 'facility', sortable: true, filter: true, width: 150 },
     { headerName: 'Proposed Appointment Date', field: 'proposed_appointment_date', sortable: true, filter: true, width: 180 },
-    { headerName: 'Actual Visit Date', field: 'actual_visit_date', sortable: true, filter: true, width: 150 },
-    { headerName: 'Status', field: 'statusDefault', width: 100, cellClass: "text-red-500" },
+    { headerName: 'Status', field: 'statusDefault', width: 150, sortable: true, filter: true, cellClass: getDefaultedStatusClass },
     { headerName: 'Last Visit', field: 'days_difference', sortable: true, filter: true, width: 150 },
-    { headerName: 'Patient Telephone', field: 'ncd_tel_pat', width: 150 },
-    { headerName: 'Kin Telephone', field: 'ncd_tel_kin', width: 150 },
+    { headerName: 'Patient Telephone', field: 'tel_pat', width: 150 },
+    { headerName: 'Kin Telephone', field: 'tel_kin', width: 150 },
 ]);
 
 
+const countDefaulterStatus = computed(() => {
+  const counts = {
+    'Missed Appointment': 0,
+    'Defaulted': 0
+  };
+
+  for (const key in props.defaulters) {
+    const status = props.defaulters[key].statusDefault;
+    if (counts.hasOwnProperty(status)) {
+      counts[status]++;
+    }
+  }
+
+  return counts;
+});
 
 
 // Reference to AG Grid
@@ -312,19 +348,19 @@ const back = () => {
                                     </div>
                                     <div class="grid grid-cols-2 gap-5 py-2.5">
                                         <div> On Time</div>
-                                        <div>{{ statusDistribution['On Time'] }}</div>
+                                        <div>{{ numberWithSpaces(statusDistribution['On Time']) }}</div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-5 py-2.5">
                                         <div> Late</div>
-                                        <div>{{ statusDistribution.Late }}</div>
+                                        <div>{{ numberWithSpaces(statusDistribution.Late) }}</div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-5 py-2.5">
                                         <div> Not Late</div>
-                                        <div>{{ statusDistribution['Early'] }}</div>
+                                        <div>{{ numberWithSpaces(statusDistribution['Early']) }}</div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-5 py-2.5">
                                         <div> - </div>
-                                        <div>{{ statusDistribution['-'] }}</div>
+                                        <div>{{ numberWithSpaces(statusDistribution['-']) }}</div>
                                     </div>
 
                                     <div class="text-sm italic text-gray-500">
@@ -351,6 +387,9 @@ const back = () => {
                 </div>
             </div>
             <div v-if="activeTab === 'latestVisitList'">
+                <!-- <pre>
+                    {{ latestData }}
+                </pre> -->
                 <div class="pt-10">
                     This tab shows a list of all the <span class="font-bold text-orange-500">LAST</span> visits (for
                     each
@@ -377,9 +416,12 @@ const back = () => {
                         Visit Date</span> column .
                 </div>
                 <div class="flex gap-5 py-10 ">
+                    <!-- <pre>
+                        {{  upcomingAppointments }}
+                    </pre> -->
                     <div class="relative w-1/2">
                         <div class="ag-theme-quartz" style="height: 900px; width: 100%;">
-                            <AgGridVue class="ag-theme-quartz" :columnDefs="columnDefs"
+                            <AgGridVue class="ag-theme-quartz" :columnDefs="columnDefUpComings"
                                 :rowData="rowDataLatestBeforeToday" :pagination="true" paginationPageSize="100"
                                 :defaultColDef="{ flex: 1, minWidth: 100 }" @grid-ready="onGridReady" />
                         </div>
@@ -397,9 +439,6 @@ const back = () => {
                 </div>
             </div>
             <div class="" v-if="activeTab === 'defaulters'">
-                <!-- <pre>
-                    {{  defaulters }}
-                </pre> -->
                 <div class="pt-10">
                     This tab shows a list of the <span class="font-bold text-orange-500">Defaulted</span> reviews and
                     the
@@ -407,18 +446,24 @@ const back = () => {
                         Visit Date</span> column . The <span class="text-orange-500 ">NS</span> means No Show.
                 </div>
                 <div class="flex gap-5 py-10">
-                    <div class="relative w-1/2">
+                    <div class="relative w-8/12">
                         <div class="ag-theme-quartz" style="height: 900px; width: 100%;">
                             <AgGridVue class="ag-theme-quartz" :columnDefs="columnDefsDefaulters"
                                 :rowData="transformedRowData" :pagination="true" paginationPageSize="100"
                                 :defaultColDef="{ flex: 1, minWidth: 100 }" @grid-ready="onGridReady" />
                         </div>
                     </div>
-                    <div class="relative w-1/2 ">
+                    <div class="relative w-4/12 ">
                         <div class="p-10 bg-white rounded-lg shadow-xl">
-                            <div class="flex gap-5">
-                                <span>Defaulted Appointments:</span> <span class="text-5xl font-bold text-rose-400">{{
-                                    transformedRowData.length }}</span>
+                            <div class="grid grid-cols-2 gap-5 border-b ">
+                                <span>Defaulted + Missed Appointments:</span> <span class="text-5xl font-bold text-rose-400">{{
+                                    numberWithSpaces(transformedRowData.length) }}</span>  
+                            </div>
+                            <div class="grid grid-cols-2 gap-5 py-10">
+                               <div>Missed Appointments</div> <div class="text-5xl font-bold text-teal-500">{{ numberWithSpaces(countDefaulterStatus['Missed Appointment'])  }}</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-5 ">
+                               <div>Defaulters</div> <div class="text-5xl font-bold text-orange-500">{{ numberWithSpaces(countDefaulterStatus['Defaulted'])  }}</div>
                             </div>
                         </div>
                     </div>
@@ -442,31 +487,38 @@ const back = () => {
                     </div>
                     <div class="relative lg:w-1/2 md:w-full sm:w-full">
                         <div class="p-20 overflow-y-auto bg-white rounded-lg shadow-xl max-h-[800px]">
+               
                             <div v-if="recordTrend">
                                 <div class="pb-5 mb-4 text-xl font-bold ">Showing trend habits for <span
                                         class="text-green-400">{{ recordTrend.record }}</span></div>
+                                <div class="border-t" v-for="(status) in recordTrend.trend ">
 
-                                <div class="gap-10 border-t " v-for="status in recordTrend.trend ">
-                                    <div class="grid grid-cols-2">
-                                        <div class=" py-2.5">
-                                            <div class="" v-if="status.date">{{ status.date }}</div>
-                                            <div v-else> - </div>
-                                        </div>
-                                        <div class=" py-2.5">
-                                            <span class="text-red-500" v-if="status.status == 'Late'">{{ status.status
-                                                }}</span>
-                                            <span class="text-green-400" v-else-if="status.status == 'Not Late'">{{
-                                                status.status
-                                            }}</span>
-                                            <span class="text-sky-500" v-else-if="status.status == 'On Time'">{{
-                                                status.status
-                                            }}</span>
-                                            <span v-else> -</span>
+                                    <div class="" v-for="(statusDate, index) in status.date">
+                                        <div class="grid grid-cols-2 gap-5 py-2.5 border-t">
+                                            <div>
+                                                <span v-if="status.date[index] == ''">
+                                                    -
+                                                </span>
+                                                <span ve-else>
+                                                    {{ status.date[index] }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="text-red-500" v-if="status.status[index] == 'Late'">{{
+                                                    status.status[index]
+                                                    }}</span>
+                                                <span class="text-green-400" v-else-if="status.status[index] == 'Early'">{{
+                                                    status.status[index]
+                                                    }}</span>
+                                                <span class="text-sky-500" v-else-if="status.status[index] == 'On Time'">{{
+                                                    status.status[index]
+                                                    }}</span>
+                                                <span v-else> -</span>
+                                            </div>
                                         </div>
                                     </div>
+                          
                                 </div>
-
-
                             </div>
                             <div v-else>
                                 Please click on the <span class="text-orange-500 ">Orange Trend </span> button to view

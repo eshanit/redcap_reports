@@ -94,7 +94,6 @@ class AppointmentsReviewControllerOG extends Controller
                     /****new */
                     // Check the latest visit against the previous next review
                     foreach ($visits as $eventId => $visitData) {
-                        // Existing logic to determine status...
 
                         // After determining the status, track the last event
                         $lastEventId = array_keys($visits)[count($visits) - 1]; // Get the last event ID
@@ -102,13 +101,10 @@ class AppointmentsReviewControllerOG extends Controller
 
                         // Check if the next review date has already passed
                         if ($nextReviewDate->isPast()) {
-                            // Calculate the days difference
+                            // Cal xculate the days difference
 
                             $daysDifferenceNow = $nextReviewDate->diffForHumans();
                             $daysDiffNow = $nextReviewDate->diffInDays();
-
-
-                            // dd();
 
                             $recordsWithNextReview[$record] = [
                                 'last_event' => $lastEventDescription,
