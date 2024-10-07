@@ -63,7 +63,7 @@ const props = defineProps<{
     data: Record<string, any>
     dataCounts: Record<string, DataCounts>
     latestData: Record<string, any>
-    statusDistribution: Record<string, object>
+    statusDistribution: any
     averageDaysDifference: Record<string, any>
     upcomingAppointments: Record<string, EventData>
     lateAppointments: Record<string, EventData>
@@ -84,7 +84,6 @@ const getStatusClass = (params: any) => {
             return '';
     }
 };
-
 
 
 const columnDefs = ref([
@@ -134,7 +133,6 @@ const columnDefUpComings = ref([
     { headerName: 'Time To Review', field: 'days_difference', sortable: true, filter: true, cellClass: "text-orange-500" },
     { headerName: 'Status', field: 'status', sortable: true, filter: true, cellClass: "text-green-500" }
 ]);
-
 
 const rowDataLatestBeforeToday = ref(
     Object.entries(props.upcomingAppointments).map(([key, value]) => ({

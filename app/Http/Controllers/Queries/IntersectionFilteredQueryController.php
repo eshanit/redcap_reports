@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Queries;
 
+ini_set('max_execution_time', -1);
+
 use App\Models\Project;
 use App\Models\ProjectData;
 use App\Models\ProjectEventMetadata;
@@ -27,6 +29,8 @@ class IntersectionFilteredQueryController extends Controller
             $intersectionResults[] = $this->applyCondition(clone $query, $condition)->get()->toArray();
         }
 
+      //  dd($intersectionResults[0][0]);
+
         $intersectedResults = $this->intersectArraysByRecord(...$intersectionResults);
         //dd( $intersectedResults);
 
@@ -34,7 +38,6 @@ class IntersectionFilteredQueryController extends Controller
         $path = $type === 'records' ? 'Data/Intersections/RecordsOnly' : 'Data/Test2';
 
         return Inertia::render($path, [
-            'filters' => Request::all('search', 'sort'),
             'requests' => $request->except('page'),
             'records' => $intersectedResults,
             'project_id' => $projectId,
@@ -51,6 +54,7 @@ class IntersectionFilteredQueryController extends Controller
             return [];
         }
 
+        //dd($arrays[0]);
         // Step 1: Extract records from the first array
         $records = array_column($arrays[0], 'record');
 
@@ -90,18 +94,43 @@ class IntersectionFilteredQueryController extends Controller
 
         $query->where('field_name', $condition['field_name']);
 
-        if ($condition['operator'] != 'ALL') {
-            switch ($condition['operator']) {
-                case 'OR':
-                    $query->whereIn('value', $condition['values']);
-                    break;
-                case 'BETWEEN':
-                    $query->whereBetween('value', [$condition['values'][0]['min'], $condition['values'][1]['max']]);
-                    break;
-                default:
-                    $query->where('value', $condition['operator'], $condition['values'][0]);
+        if ($condition['event_id'] == 0) {
+
+
+            if ($condition['operator'] != 'ALL') {
+                switch ($condition['operator']) {
+                    case 'OR':
+                        $query->whereIn('value', $condition['values']);
+                        break;
+                    case 'BETWEEN':
+                        $query->whereBetween('value', [$condition['values'][0]['min'], $condition['values'][1]['max']]);
+                        break;
+                    default:
+                        $query->where('value', $condition['operator'], $condition['values'][0]);
+                }
+            } else {
+                $query->where('value', '!=', null);
             }
+        } else {
+
+            if ($condition['operator'] != 'ALL') {
+                switch ($condition['operator']) {
+                    case 'OR':
+                        $query->whereIn('value', $condition['values']);
+                        break;
+                    case 'BETWEEN':
+                        $query->whereBetween('value', [$condition['values'][0]['min'], $condition['values'][1]['max']]);
+                        break;
+                    default:
+                        $query->where('value', $condition['operator'], $condition['values'][0]);
+                }
+            } else {
+                $query->where('value', '!=', null);
+            }
+
+            $query->where('event_id', $condition['event_id']);
         }
+        // dd($query->toSQL());
         return $query;
     }
 

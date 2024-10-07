@@ -41,6 +41,13 @@ class ProjectData extends Model
         return $this->hasManyThrough(ProjectMetadata::class, Project::class, 'project_id', 'project_id');
     }
 
+    /**  */
+      // A method  to get field values
+      public function valueForField($fieldName)
+      {
+          return $this->attributes[$fieldName] ?? null;
+      }
+
 
     //scopes
 

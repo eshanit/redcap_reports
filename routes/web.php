@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Customized\DashboardController;
 use App\Http\Controllers\Customized\NCD\AppointmentsReviewController;
+use App\Http\Controllers\Customized\NCD\Hb1acController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ProjectDataReportingController;
 use App\Http\Controllers\Queries\FieldFilteringController;
@@ -67,5 +68,6 @@ Route::middleware([
     //Custom Pages
     Route::get('project/{projectId}/custom-pages', [DashboardController::class,'read'])->name('custom-pages');
     //NCD
-    Route::get('project/{projectId}/custom-pages/appointment-reviews',AppointmentsReviewController::class)->name('appointment-reviews');
+    Route::get('project/{projectId}/custom-pages/appointment_reviews',AppointmentsReviewController::class)->name('appointment-reviews');
+    Route::get('project/{projectId}/custom-pages/hba1c_analytics',Hb1acController::class)->name('hba1c-analytics');
 });

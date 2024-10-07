@@ -32,8 +32,8 @@ const back = () => {
         </template>
 
         <div class="sm:px-6 lg:px-8">
-            <div class="relative py-12" v-if="customProjectData.length > 0">
-                <div class="max-w-md mx-auto overflow-hidden bg-white rounded-lg shadow-lg"
+            <div class="relative grid grid-cols-4 gap-5 py-12" v-if="customProjectData.length > 0">
+                <div class="overflow-hidden bg-white rounded-lg shadow-lg"
                     v-for="customProject in customProjectData ">
                     <!-- <img class="object-cover w-full h-48" src="your-image-url.jpg" alt="Card Image"> -->
                     <div class="p-6">

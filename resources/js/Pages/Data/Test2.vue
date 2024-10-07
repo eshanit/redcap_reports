@@ -129,6 +129,8 @@ const columnDefs = computed(() => {
         if (!fieldGroups[field.name]) {
             fieldGroups[field.name] = {
                 headerName: field.name,
+                sortable: true,
+                filter: true, 
                 children: [] // This will hold the columns for this group
             };
         }
@@ -138,6 +140,8 @@ const columnDefs = computed(() => {
             fieldGroups[field.name].children.push({
                 headerName: eventName,
                 field: `${field.name}_${eventName}`,
+                sortable: true,
+                filter: true, 
                 minWidth: 150,
                 cellClass: `bg-${colors[index]}-100`
             });
@@ -281,14 +285,18 @@ const rowDataZ = computed(() => {
 // Define column definitions for AG Grid
 const columnDefsX = computed(() => {
     const columns = [
-        { headerName: "Record", field: "record", minWidth: 150, cellClass: undefined, pinned: 'left' },
-        { headerName: "Event Name", field: "eventName", minWidth: 150 },
+        { headerName: "Record", field: "record", minWidth: 150, cellClass: undefined,     sortable: true,
+        filter: true, pinned: 'left' },
+        { headerName: "Event Name", field: "eventName", minWidth: 150, sortable: true,
+        filter: true },
     ];
 
     groupedFields.value.forEach(field => {
         columns.push({
             headerName: field.name,
             field: field.name,
+            sortable: true,
+            filter: true, 
             minWidth: 150,
             cellClass: `bg-${colors[columns.length % colors.length]}-100`,
             pinned: 'left'
@@ -386,6 +394,9 @@ const back = () => {
             </ul>
 
             <div v-if="activeTab === 'oneRowOneRecord'">
+            <!-- <pre>
+                {{ records }}
+            </pre> -->
                 <div class="ag-theme-quartz" style="height: 800px; width: 100%;">
                     <AgGridVue :columnDefs="columnDefs" :rowData="rowData" :pagination="true" :paginationPageSize="100"
                         :defaultColDef="{ flex: 1, minWidth: 100 }" @grid-ready="onGridReady" class="ag-theme-quartz" />

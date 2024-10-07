@@ -1,32 +1,20 @@
 <?php
-
 namespace App\Http\Controllers\Customized\NCD;
+// ini_set('memory_limit', '512M');
+ini_set('max_execution_time', -1);
 
 use App\Models\Project;
 use App\Models\ProjectData;
 use App\Models\ProjectEventMetadata;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Arr;
 use Carbon\Carbon;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 
 class AppointmentsReviewController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
-    /**
-     * Handle the incoming request.
-     */
-    /**
-     * Handle the incoming request.
-     */
     public function __invoke(string $id)
     {
-        // Fetch the project
         $project = Project::select('project_id', 'app_title')->findOrFail($id);
-
         $results = ProjectData::where('project_id', $id)
             ->addSelect([
                 'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')
@@ -53,46 +41,80 @@ class AppointmentsReviewController extends Controller
             // Clone the event groups
             $clonedGroups = $eventGroups->map(function ($group) {
                 return collect($group); // Create a clone of each group
+
             });
-            return $clonedGroups->select('event_id', 'event', 'ncd_health_facility','ncd_tel_pat','ncd_tel_kin'); // Return proposed dates
+            return $clonedGroups->select('event_id', 'event', 'ncd_health_facility', 'ncd_tel_pat', 'ncd_tel_kin'); // Return proposed dates
+
         });
 
-   
+        //Get date when visit was done
+        $resultsCurrentVisitDates = $results->map(function ($eventGroups) {
+            // Clone the event groups
+            $clonedGroups = $eventGroups->map(function ($group) {
+                return collect($group); // Create a clone of each group
+            });
+      
+           // return $clonedGroups;
+           // dd($clonedGroups);
+            $shifted = $clonedGroups->shift(); // Remove the first element
 
+            $dates = $clonedGroups->pluck('ncd_visit_date')->prepend('');
+
+            if ($clonedGroups->count() > 2) {
+                $popped = $clonedGroups->pop(); // Remove the last element
+
+                $clonedGroups->pluck('ncd_visit_date')->push('');
+            };
+
+            return $dates; // Return proposed dates
+
+        });
+
+        //dd( $resultsCurrentVisitDates['CHK0001'],$resultsCurrentVisitDates['MPH0735'], $resultsCurrentVisitDates['MPH473'] );
         // Get proposed dates, shifting and popping elements
+
         $resultsProposedDates = $results->map(function ($eventGroups) {
             // Clone the event groups
             $clonedGroups = $eventGroups->map(function ($group) {
                 return collect($group); // Create a clone of each group
             });
-
+      
+           // return $clonedGroups;
+           // dd($clonedGroups);
             $shifted = $clonedGroups->shift(); // Remove the first element
-            $popped = $clonedGroups->pop();     // Remove the last element
 
-            return $clonedGroups->pluck('ncd_next_review')->prepend('')->push(''); // Return proposed dates
+            $dates = $clonedGroups->pluck('ncd_next_review')->prepend('');
+
+            if ($clonedGroups->count() > 2) {
+                $popped = $clonedGroups->pop(); // Remove the last element
+
+                $clonedGroups->pluck('ncd_next_review')->push('');
+            };
+
+            return $dates; // Return proposed dates
+
         });
 
-        // Get actual dates, shifting and popping elements
+
+
         $resultsActualDates = $results->map(function ($eventGroups) {
             // Clone the event groups
             $clonedGroups = $eventGroups->map(function ($group) {
                 return collect($group); // Create a clone of each group
             });
 
+           // return $clonedGroups;
+
             $shifted = $clonedGroups->shift(2); // Remove the first 2 elements
-
-
             return $clonedGroups->pluck('ncd_visit_date')->prepend('')->push(''); // Return actual dates
+
         });
+//dd( $resultsActualDates['CHK0001'],$resultsActualDates['MPH0735'] );
 
-        //
-        $resultXY = $resultsElements->map(function ($item, $index) use ($resultsProposedDates, $resultsActualDates) {
-
+        $resultXY = $resultsElements->map(function ($item, $index) use ($resultsCurrentVisitDates, $resultsProposedDates, $resultsActualDates) {
             $proposedDates = $resultsProposedDates[$index];
             $actualDates = $resultsActualDates[$index];
-
             //dd($proposedDates, $actualDates);
-
             $dateDiffs = $proposedDates->zip($actualDates)->map(function ($pair) {
                 [$proposedDates, $actualDates] = $pair;
                 if ($actualDates && $proposedDates) {
@@ -103,7 +125,6 @@ class AppointmentsReviewController extends Controller
                     return null; // Handle empty or invalid dates
                 }
             });
-
 
             $dateDiffHumans = $proposedDates->zip($actualDates)->map(function ($pair) {
                 [$proposedDates, $actualDates] = $pair;
@@ -116,9 +137,8 @@ class AppointmentsReviewController extends Controller
                 }
             });
 
-            $today =  Carbon::today();
-
-            $dateDiffFromNow =  $actualDates->map(function ($date) use ($today) {
+            $today = Carbon::today();
+            $dateDiffFromNow = $actualDates->map(function ($date) use ($today) {
                 if ($date) {
                     $carbonDate = Carbon::parse($date);
                     return $carbonDate->diffForHumans($today);
@@ -127,14 +147,11 @@ class AppointmentsReviewController extends Controller
                 }
             });
 
-
             $status = $proposedDates->zip($actualDates)->map(function ($pair) {
                 [$proposedDates, $actualDates] = $pair;
                 if ($actualDates && $proposedDates) {
-
                     $carbonDate1 = Carbon::parse($proposedDates);
                     $carbonDate2 = Carbon::parse($actualDates);
-
                     if ($actualDates > $proposedDates) {
                         return 'Late';
                     } else if ($actualDates == $proposedDates) {
@@ -148,20 +165,19 @@ class AppointmentsReviewController extends Controller
             });
 
 
-            //dd($proposedDates,  $actualDates);
             $statusDistribution = $status->filter()->countBy()->toArray();
-
-            $facility =  $item->pluck('ncd_health_facility')->toArray();
+            $facility = $item->pluck('ncd_health_facility')->toArray();
             $patient_num = $item->pluck('ncd_tel_pat')->toArray();
             $kin_num = $item->pluck('ncd_tel_kin')->toArray();
-           // dd($item->pluck('event_id'));
 
             return [
+               // 'index' => $index,
                 'event_id' => $item->pluck('event_id')->toArray(),
                 'event' => $item->pluck('event')->toArray(),
-                'facility' =>$facility[0],
+                'facility' => $facility[0],
                 'tel_pat' => $patient_num[0] ?? '-',
                 'tel_kin' => $kin_num[0] ?? '-',
+                'visit_dates' => $resultsCurrentVisitDates[$index]->toArray(),
                 'proposed_dates' => $resultsProposedDates[$index]->toArray(),
                 'actual_dates' => $resultsActualDates[$index]->toArray(),
                 'days_difference' => $dateDiffs->toArray(),
@@ -172,32 +188,23 @@ class AppointmentsReviewController extends Controller
             ];
         });
 
-
-
-        //dd($resultXY['CHK0001']);
-
         $statusDistribution = $this->getStatusDistribution($resultXY->toArray());
-        //$averageDaysDifference = $this->getAverageDaysDifference($results);
         $upcomingAppointments = $this->getUpcomingAppointments($results->toArray());
         $lateAppointments = $this->getLateAppointments($resultXY->toArray());
-        // $eventAnalysis = $this->getEventSpecificAnalysis($resultXY->toArray());
         $trends = $this->getRecordSpecificTrends($resultXY->toArray());
         $latestVisits = $this->getLatestVisit($resultXY->toArray());
-
         $defaulters = $this->getDefaultedRecords($resultXY->toArray());
 
         return Inertia::render(
-            'Customized/NCD/ReviewDatesAllSites',
+            'Customized/NCD/ReviewDates/Package',
             [
                 'project' => $project,
                 'data' => $resultXY,
                 'dataCounts' => $trends,
-                'latestData' =>  $latestVisits,
+                'latestData' => $latestVisits,
                 'statusDistribution' => $statusDistribution,
-                'averageDaysDifference' => [],
                 'upcomingAppointments' => $upcomingAppointments,
                 'lateAppointments' => $lateAppointments,
-                //'eventAnalysis' => $eventAnalysis,
                 'trends' => $trends,
                 'defaulters' => $defaulters
             ]
@@ -205,109 +212,97 @@ class AppointmentsReviewController extends Controller
     }
 
 
-
-    private function determineStatus($visitDate, $nextReviewDate)
-    {
-        if ($visitDate->greaterThan($nextReviewDate)) {
-            return 'Late';
-        } elseif ($visitDate->lessThan($nextReviewDate)) {
-            return 'Not Late';
-        } elseif ($visitDate->isSameDay($nextReviewDate)) {
-            return 'On Time';
-        }
-        return '-';
-    }
-
-
-
     /**
+
      * Status distribution
+
      */
 
     private function getStatusDistribution(array $results)
+
     {
-        $statusCounts = [
-            'Late' => 0,
-            'Not Late' => 0,
-            'On Time' => 0,
-            '-' => 0,
-        ];
-
         foreach ($results as $recordData) {
-
-            // dd($recordData['status']);
             $arr[] = $recordData['status'];
         }
-
-        // dd();
-
         return collect($arr)->flatten(1)->countBy();
     }
-
 
     /// get Upcoming visits
 
     private function getUpcomingAppointments(array $results)
+
     {
         $upcomingAppointments = [];
-
         foreach ($results as $record => $recordData) {
-
             $lastVisit[$record] = collect($recordData)->last();
-
             if (
                 $lastVisit[$record]['ncd_next_review'] != "" &&
                 Carbon::parse($lastVisit[$record]['ncd_next_review'])->greaterThan(Carbon::today())
             ) {
-                //dd($entry['proposed_appointment_date']);
                 $daysDifferenceNow = Carbon::parse($lastVisit[$record]['ncd_next_review'])->diffForHumans();
                 $upcomingAppointments[$record] = collect($recordData)->last();
                 $upcomingAppointments[$record]['status'] = 'Pending';
-                $upcomingAppointments[$record]['days_difference'] =  $daysDifferenceNow;
-
+                $upcomingAppointments[$record]['days_difference'] = $daysDifferenceNow;
             }
         }
 
         return $upcomingAppointments;
     }
 
-    /// get latest visit data
 
     private function getLatestVisit(array $results)
     {
-        foreach ($results as $record => $recordData) {
+   //dd($results['MPH0735']);
 
-            $index = count($recordData['event_id']) - 2;
-            if (count($recordData['event_id']) >= 2) {
+        foreach ($results as $record => $recordData) {
+            $index = count($recordData['event_id'])-2;
+            if (count($recordData['event_id']) > 2) {
+
                 $transformedArray[$record]['event_id'] = $recordData['event_id'][$index];
                 $transformedArray[$record]['event'] = $recordData['event'][$index];
                 $transformedArray[$record]['facility'] = $recordData['facility'];
+                $transformedArray[$record]['visit_dates'] = $recordData['visit_dates'][$index];
                 $transformedArray[$record]['proposed_dates'] = $recordData['proposed_dates'][$index];
                 $transformedArray[$record]['actual_dates'] = $recordData['actual_dates'][$index];
                 $transformedArray[$record]['days_difference'] = $recordData['days_difference'][$index];
                 $transformedArray[$record]['human_readable'] = $recordData['human_readable'][$index];
-                $transformedArray[$record]['diff_from_today'] = $recordData['diff_from_today'][$index];
+                $tansformedArray[$record]['diff_from_today'] = $recordData['diff_from_today'][$index];
                 $transformedArray[$record]['status'] = $recordData['status'][$index];
                 $transformedArray[$record]['tel_pat'] = $recordData['tel_pat'];
                 $transformedArray[$record]['tel_kin'] = $recordData['tel_kin'];
+
+            } elseif (count($recordData['event_id']) == 2) {
+
+                $transformedArray[$record]['event_id'] = $recordData['event_id'][1];
+                $transformedArray[$record]['event'] = $recordData['event'][1];
+                $transformedArray[$record]['facility'] = $recordData['facility'];
+                $transformedArray[$record]['visit_dates'] = $recordData['visit_dates'][1];
+                $transformedArray[$record]['proposed_dates'] = $recordData['proposed_dates'][1];
+                $transformedArray[$record]['actual_dates'] = $recordData['actual_dates'][1];
+                $transformedArray[$record]['days_difference'] = $recordData['days_difference'][1];
+                $transformedArray[$record]['human_readable'] = $recordData['human_readable'][1];
+                $tansformedArray[$record]['diff_from_today'] = $recordData['diff_from_today'][1];
+                $transformedArray[$record]['status'] = $recordData['status'][1];
+                $transformedArray[$record]['tel_pat'] = $recordData['tel_pat'];
+                $transformedArray[$record]['tel_kin'] = $recordData['tel_kin'];
+
             }
         }
 
+       // dd($tansformedArray['MPH0735']);
         return $transformedArray;
-        //dd($transformedArray['CHK0001'], $results['CHK0001']);
     }
 
     ///late appointment analysis
+
     private function getLateAppointments(array $results)
     {
-
         foreach ($results as $record => $recordData) {
-            // Loop through the original array
             foreach ($recordData['status'] as $index => $status) {
                 if ($status === 'Late') {
-                    // Add to the new arrays
                     $transformedArray[$record]['event_id'][$index] = $recordData['event_id'][$index];
                     $transformedArray[$record]['event'][$index] = $recordData['event'][$index];
+                    $transformedArray[$record]['visit_dates'] = $recordData['visit_dates'][$index];
                     $transformedArray[$record]['proposed_dates'][$index] = $recordData['proposed_dates'][$index];
                     $transformedArray[$record]['actual_dates'][$index] = $recordData['actual_dates'][$index];
                     $transformedArray[$record]['days_difference'][$index] = $recordData['days_difference'][$index];
@@ -317,27 +312,22 @@ class AppointmentsReviewController extends Controller
                 }
             }
         }
-        // Reindex the arrays to maintain the desired structure
+
         foreach ($transformedArray as &$array) {
             $array = array_values($array); // Reindex the array
         }
 
-        //dd($transformedArray);
-        // Output the transformed array
         return $transformedArray;
     }
 
-    /// event specifi
-    /// record trenda
 
     private function getRecordSpecificTrends(array $results)
     {
         $trends = [];
-
         foreach ($results as $record => $recordData) {
             $trends[$record] = [];
             $counts = array_count_values($recordData['status']);
-           // dd($counts);
+            // dd($counts);
             $trends[$record] = [
                 'Late Visits' => $counts['Late'] ?? 0,
                 'Early Visits' => $counts['Early'] ?? 0,
@@ -347,43 +337,32 @@ class AppointmentsReviewController extends Controller
                 'date' => $recordData['proposed_dates'] ?? '-',
             ];
         }
-
-        //dd($trends['CHK0001']);
-
         return $trends;
     }
 
     // defaulters
+
     private function getDefaultedRecords(array $results)
     {
-       $latestVisitsPerRecords =  $this->getLatestVisit($results);
-
-      // dd($latestVisitsPerRecords['CHK0001']['proposed_dates']);
-
-       foreach( $latestVisitsPerRecords as $record => $recordData){
-
-        $nextReviewDate = Carbon::parse($recordData['proposed_dates']);
-        $daysDifferenceNow = $nextReviewDate->diffForHumans();
-        $daysDiffNow = $nextReviewDate->diffInDays();
-
-      // dd($recordData);
-
-        if($nextReviewDate->isPast()){
-
-            $defaults[$record]['last_event'] = $recordData['event'];
-            $defaults[$record]['facility'] = $recordData['facility'];
-            $defaults[$record]['proposed_appointment_date'] = $nextReviewDate->toDateString();
-            $defaults[$record]['actual_dates'] = 'No Show';
-            $defaults[$record]['statusDefault'] = $daysDiffNow <= 183 ? 'Missed Appointment' : 'Defaulted' ;
-            $defaults[$record]['days_difference'] = $daysDifferenceNow;
-            $defaults[$record]['tel_pat'] = $recordData['tel_pat'] ?? '-';
-            $defaults[$record]['tel_kin'] = $recordData['tel_kin'] ?? '-';
+        $latestVisitsPerRecords = $this->getLatestVisit($results);
+        foreach ($latestVisitsPerRecords as $record => $recordData) {
+            $visitDate =  Carbon::parse($recordData['visit_dates']);
+            $nextReviewDate = Carbon::parse($recordData['proposed_dates']);
+            $daysDifferenceNow = $nextReviewDate->diffForHumans();
+            $daysDiffNow = $nextReviewDate->diffInDays();
+            if ($nextReviewDate->isPast()) {
+                $defaults[$record]['last_event'] = $recordData['event'];
+                $defaults[$record]['facility'] = $recordData['facility'];
+                $defaults[$record]['visit_dates'] = $recordData['visit_dates'];
+                $defaults[$record]['proposed_appointment_date'] = $nextReviewDate->toDateString();
+                $defaults[$record]['actual_dates'] = 'No Show';
+                $defaults[$record]['statusDefault'] = $daysDiffNow <= 183 ? 'Missed Appointment' : 'Defaulted';
+                $defaults[$record]['days_difference'] = $daysDifferenceNow;
+                $defaults[$record]['tel_pat'] = $recordData['tel_pat'] ?? '-';
+                $defaults[$record]['tel_kin'] = $recordData['tel_kin'] ?? '-';
+            }
         }
 
-       }
-       
-       return $defaults;
-
+        return $defaults;
     }
-
 }

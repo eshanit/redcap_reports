@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "target": "es2023", // Set the JavaScript version to ES2023
+      "lib": [
+        "es2023", // Include ES2023 library
+        "dom" // Include DOM library if you're working with web applications
+      ],
+      "module": "commonjs", // or your preferred module system
+      "strict": true, // Enable strict type checking options
+      "esModuleInterop": true // Enables emit interoperability between CommonJS and ES Modules
+      // Add other options as needed
+    }
+  }
