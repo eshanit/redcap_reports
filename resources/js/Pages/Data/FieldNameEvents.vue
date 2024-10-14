@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Ref, ref, watch } from 'vue';
 import FieldCheckboxInput from '@/Components/FieldCheckboxInput.vue';
+import CircularProgress from '@/Components/CircularProgress.vue';
 import FieldCheckboxInputAllEvents from '@/Components/FieldCheckboxInputAllEvents.vue';
 import FilterQueryDefinitionsV2 from '@/Components/Redcap/FilterQueryDefinitionsV2.vue';
 import VueSelect from "vue3-select-component";
@@ -12,7 +13,6 @@ const props = defineProps<{
     metadataByField: any
 
 }>();
-
 
 
 const events = ref<Record<string, any[]>>({}); // Store events for each field
@@ -28,7 +28,23 @@ props.fields.forEach((selectedField) => {
 
 const emit = defineEmits(['selected']);
 
+///
+
+const isLoading = ref(false); // Add loading state
+
+// const getEventsForField = async (fieldName: string) => {
+//     try {
+//         const response = await fetch(`fieldname/${fieldName}/events`);
+//         const data = await response.json();
+//         events.value[fieldName] = data.fieldEvents || []; // Store events for the specific field
+//     } catch (error) {
+//         console.log('Error fetching events:', error);
+//         events.value[fieldName] = []; // Return an empty array in case of an error
+//     }
+// };
+
 const getEventsForField = async (fieldName: string) => {
+    isLoading.value = true; // Start loading
     try {
         const response = await fetch(`fieldname/${fieldName}/events`);
         const data = await response.json();
@@ -36,6 +52,8 @@ const getEventsForField = async (fieldName: string) => {
     } catch (error) {
         console.log('Error fetching events:', error);
         events.value[fieldName] = []; // Return an empty array in case of an error
+    } finally {
+        isLoading.value = false; // End loading
     }
 };
 
@@ -81,7 +99,6 @@ watch(() => selectedEvents, (newValue) => {
 
 </script>
 <template>
-
     <div class="grid grid-cols-2 gap-5">
         <div v-if="fields.length">
             <div class="p-5 " v-for="(fieldName, i) in fields" :key="i">
@@ -92,26 +109,25 @@ watch(() => selectedEvents, (newValue) => {
                             <VueSelect v-model="dataModel[i]" :options="dataOptions" placeholder="Select an option" />
                         </div>
                     </div>
-                    <!-- {{ dataModel }} -->
-                    <!-- Render the events for each field -->
                     <div v-if="dataModel[i] === 'events'">
-                        <div v-if="events[fieldName]?.length">
-                            <!-- {{ metadataByField[fieldName] }} -->
+                        <div v-if="isLoading">
+                            <CircularProgress :isLoading="isLoading" />
+                        </div>
+                        <div v-else-if="events[fieldName]?.length">
                             <div class="">
                                 <div class="px-1.5">
                                     <FieldCheckboxInput 
-                                    :name="fieldName" v-model="selectedEvents[i][fieldName]"
+                                        :name="fieldName" 
+                                        v-model="selectedEvents[i][fieldName]"
                                         :options="events[fieldName]"
-                                        :field-name-metadata="metadataByField[fieldName][0]" />
+                                        :field-name-metadata="metadataByField[fieldName][0]" 
+                                    />
                                 </div>
-
                             </div>
                         </div>
                         <div v-else>
                             No events found for this field. If you are sure this field has events, please wait while they load, if not you can select 
-                            <span class="text-orange-500">
-                                All data
-                            </span>
+                            <span class="text-orange-500">All data</span>
                         </div>
                     </div>
                     <div v-else>
@@ -120,15 +136,14 @@ watch(() => selectedEvents, (newValue) => {
                                 :options="allData" :field-name-metadata="metadataByField[fieldName][0]" />
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
         <div>
-            <!-- {{ selectedEvents }} -->
             <FilterQueryDefinitionsV2 :selected-data="selectedEvents" />
         </div>
-
     </div>
-
 </template>
+<style scoped>
+/* Add any global styles you need */
+</style>

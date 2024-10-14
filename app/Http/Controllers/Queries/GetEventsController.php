@@ -11,13 +11,19 @@ class GetEventsController extends Controller
     {
         $events = ProjectData::where('project_id', $projectId)
             ->where('field_name', $fieldName)
-            ->addSelect([
-                'id' => 'redcap_data.event_id',
-                'name' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')
-            ])->distinct()->get();
+            ->distinct()
+            ->pluck('instance')->map(function ($instance) {
 
-        //dd($events);
+                $instancePosition = $instance ?? 1;
 
-        return response()->json(['fieldEvents' => $events],200);
+                return [
+                    'id' => $instance,
+                    'name' => 'Visit - '.$instancePosition
+                ];
+            });
+
+      // dd($events);
+
+        return response()->json(['fieldEvents' => $events->toArray()],200);
     }
 }

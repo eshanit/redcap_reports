@@ -12,7 +12,7 @@ class ProjectData extends Model
 {
     use HasFactory;
 
-    protected $table = 'redcap_data';
+    protected $table = 'redcap_data3';
 
 
     public function respondent()
@@ -30,15 +30,22 @@ class ProjectData extends Model
     //
     public function project_event_metadata(): BelongsTo
     {
-        return $this->belongsTo(ProjectEventMetadata::class, 'event_id');
+        return $this->belongsTo(ProjectEventMetadata::class, 'event_id', 'event_id');
     }
+
+
+    // In your ProjectData model
+public function project_event_forms()
+{
+    return $this->belongsTo(ProjectEventForm::class, 'event_id', 'event_id');
+}
 
     /**
      * 
      */
-    public function project_metadata(): HasManyThrough
+    public function project_metadata(): BelongsTo
     {
-        return $this->hasManyThrough(ProjectMetadata::class, Project::class, 'project_id', 'project_id');
+        return $this->belongsTo(ProjectMetadata::class, 'field_name', 'field_name');
     }
 
     /**  */

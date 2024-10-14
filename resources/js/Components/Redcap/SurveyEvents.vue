@@ -24,7 +24,8 @@ const calculatedForm = computed(() => {
                     element_enum: el.element_enum,
                     element_note: el.element_note,
                     value: el.value,
-                    description: el.description
+                    description: el.description,
+                    instance: el.instance
                 })
 
             }

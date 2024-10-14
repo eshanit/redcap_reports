@@ -138,9 +138,9 @@ const postIntesectionArray = (selectedArray: any) => {
       </draggable>
 
       <!-- Drop zone -->
-      <pre>
+      <!-- <pre>
   {{ droppedIntersectionItems }}
-</pre>
+</pre> -->
       <div class="grid grid-cols-3 gap-5">
         <div id="union" class="p-5 bg-white rounded-lg">
           <div class="font-bold text-orange-500">

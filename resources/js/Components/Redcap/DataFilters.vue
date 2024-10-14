@@ -49,6 +49,7 @@ const localStorageState = useStorage('dataFilters', state)
                     2. Select the Events for the field names
                 </div>
                 <div class="p-5 overflow-x-auto h-[1000px]">
+                    hi
                     <SelectFilters :selected-data-fields="localStorageState.selected_fields" :field-events="fieldEvents"
                         :metadata-by-field="metadataByField" />
                 </div>

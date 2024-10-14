@@ -28,17 +28,21 @@ class Hb1acController extends Controller
                 'ncd_gender',
                 'ncd_visit_date'
             ])
-            ->addSelect([
-                'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')
-            ])
+            // ->addSelect([
+            //     'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data3.event_id')
+            // ])
             ->get()
             ->groupBy('record')
             ->map(function ($group) {
-                return $group->groupBy('event_id')->map(function ($eventGroup) {
+                return $group->groupBy('instance')->map(function ($eventGroup) {
+
+                    $health_facility = $eventGroup->where('field_name', 'ncd_health_facility')->pluck('value')->first();
+
                     $records =  [
                         'event_id' => $eventGroup->pluck('event_id')->first(),
-                        'event' => $eventGroup->pluck('event')->first(),
-                        'ncd_health_facility' => $eventGroup->where('field_name', 'ncd_health_facility')->pluck('value')->first(),
+                        //'real_event' => $eventGroup->pluck('event')->first(),
+                        'event' => $eventGroup->pluck('instance')->first() ?? 1,
+                        'ncd_health_facility' => $health_facility,
                         'ncd_age' => $eventGroup->where('field_name', 'ncd_age')->pluck('value')->first(),
                         'ncd_gender' => $eventGroup->where('field_name', 'ncd_gender')->pluck('value')->first(),
                         'ncd_hb1ac' => $eventGroup->where('field_name', 'ncd_hba1c')->pluck('value')->first(),
@@ -80,13 +84,18 @@ class Hb1acController extends Controller
 
     private function hba1cData(array $data)
     {
+       //dd($data['CHK0001']);
         foreach ($data as $record => $recordData) {
-            foreach ($recordData as $index => $eventId) {
-                $firstElement[$record] = collect($recordData)->pluck('event_id')->first();
-                $gender = $recordData[$firstElement[$record]]['ncd_gender'];
 
-                $transformedArray[$record]['health_facility'] = $recordData[$firstElement[$record]]['ncd_health_facility'];
-                $transformedArray[$record]['age'] = $recordData[$firstElement[$record]]['ncd_age'];
+            foreach ($recordData as $index => $eventId) {
+                //dd($recordData);
+                //dd(collect($recordData)->values());
+                $recordDataArray = collect($recordData)->values();
+                $firstElement[$record] = collect($recordData)->pluck('event')->first();
+                $gender = $recordDataArray[0]['ncd_gender']??'unknown';
+
+                $transformedArray[$record]['health_facility'] = $recordDataArray[0]['ncd_health_facility']??'unknown';
+                $transformedArray[$record]['age'] = $recordDataArray[0]['ncd_age']??'unknown';
                 $transformedArray[$record]['gender'] = $gender == 1 ? 'Male' : 'Female';
                 $transformedArray[$record]['event'] = $recordData[$index]['event'];
                 $transformedArray[$record]['event_id'] = $recordData[$index]['event_id'];
@@ -101,6 +110,41 @@ class Hb1acController extends Controller
 
         return $finalArray;
     }
+
+//     private function hba1cData(array $data)
+// {
+//     $finalArray = [];
+
+//     foreach ($data as $record => $recordData) {
+//         // Get the first event group
+//         $firstElement = collect($recordData)->first();
+
+//         // Prepare the base record with values from the first element
+//         $transformedArray = [
+//             'event_id' => $firstElement['event_id'],
+//             'event' => $firstElement['event'],
+//             'ncd_health_facility' => $firstElement['ncd_health_facility'] ?? 'unknown',
+//             'ncd_age' => $firstElement['ncd_age'] ?? 'unknown',
+//             'ncd_gender' => ($firstElement['ncd_gender'] == 1) ? 'Male' : 'Female',
+//         ];
+
+//         // Iterate over each event in the recordData
+//         foreach ($recordData as $index => $event) {
+//             // Append the event-specific data
+//             $transformedArray['hb1ac'] = $event['ncd_hb1ac'];
+//             $transformedArray['visit_date'] = $event['ncd_visit_date'];
+
+//             // Remove entries with null hb1ac
+//             if ($transformedArray['hb1ac'] !== null) {
+//                 $finalArray[$record][] = $transformedArray;
+//             }
+//         }
+//     }
+
+//     return $finalArray;
+// }
+
+
     private function statisticsHb1ac(array $data)
     {
         $allResults = $this->hba1cData($data);

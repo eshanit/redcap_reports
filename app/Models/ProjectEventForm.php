@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Str;
+
 
 class ProjectEventForm extends Model
 {
@@ -18,5 +21,14 @@ class ProjectEventForm extends Model
     {
         return $this->hasMany(ProjectEventMetadata::class);
     }
+
+     //Mutator
+     public function formName(): Attribute
+     {
+         return Attribute::make(
+              fn ($value) => Str::headline($value)
+         );
+     }
+ 
 
 }

@@ -14,7 +14,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\DB;
 
-class ProjectDataReportingController extends Controller
+class ProjectDataReportingControllerOld extends Controller
 {
     //
     public function read(string $id): Response
@@ -56,29 +56,17 @@ class ProjectDataReportingController extends Controller
 
         $respondent_data = ProjectData::query()->where('project_id', $projectId)
             ->where('record', $record)
-            //->where('event_id', 1110)
-            ->with(['project_event_metadata', 'project_metadata' => function ($query) use ($projectId) {
-                $query->where('project_id', $projectId); // Ensure project_id matches
-            }])
+            ->with('project_event_metadata')
             ->orderBy('event_id', 'asc')
             ->get()->map(fn($project_data) => [
                 'project_id' => $project_data->project_id,
                 'event_id' => $project_data->event_id,
                 'field_name' => $project_data->field_name,
                 'value' => $project_data->value,
-                'instance' => $project_data->instance ?? 1,
                 'description' => $project_data->project_event_metadata->descrip,
-                'custom_event_label' => $project_data->project_event_metadata->custom_event_label,
-                'form_name' => $project_data->project_metadata->form_name ?? null,
+                'custom_event_label' => $project_data->project_event_metadata->custom_event_label
             ])
-            ->groupBy('description')// NCD has recurring visits so we use instances but originally we grouped by description
-            ->map(function ($group) {
-                return collect($group)->groupBy('form_name') // Then group by form_name within each description
-                    ->map(function ($subGroup) {
-                        return $subGroup->groupBy('instance'); // Finally group by instance within each form_name
-                    });
-            });
-            //dd($respondent_data);
+            ->groupBy('description');
 
         return Inertia::render(
             'Reports/Record',

@@ -24,23 +24,22 @@ interface EventData {
 
 
 interface DataCounts {
-
     status_counts: {
-        "Late": number;
-        "Early": number,
-        "On Time": number,
-        "-": number
+        "Late Visits": number;
+        "Early Visits": number,
+        "On Time Visits": number,
+        "No Data": number
     }
 }
 
 ///
 const activeTab = ref('allVisitList');
 
-const setActiveTab = (tab) => {
+const setActiveTab = (tab: any) => {
     activeTab.value = tab;
 };
 
-const tabClass = (tab) => {
+const tabClass = (tab: any) => {
     return activeTab.value === tab ? 'bg-blue-500' : 'bg-gray-500';
 };
 
@@ -48,7 +47,7 @@ const tabClass = (tab) => {
 const props = defineProps<{
     project: any,
     data: Record<string, any>
-    dataCounts: Record<string, DataCounts>
+    dataCounts: Record<string, any>
     latestData: Record<string, object>
     statusDistribution: any
     averageDaysDifference: Record<string, any>

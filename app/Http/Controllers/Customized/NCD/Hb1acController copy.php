@@ -10,7 +10,7 @@ use App\Models\ProjectData;
 use App\Models\ProjectEventMetadata;
 use Inertia\Inertia;
 
-class Hb1acControllerCopy extends Controller
+class Hb1acControllerEventBaed extends Controller
 {
     /**
      * Handle the incoming request.
@@ -29,7 +29,7 @@ class Hb1acControllerCopy extends Controller
                 'ncd_visit_date'
             ])
             ->addSelect([
-                'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')
+                'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data3.event_id')
             ])
             ->get()
             ->groupBy('record')
@@ -48,9 +48,20 @@ class Hb1acControllerCopy extends Controller
                 });
             });
 
+        $allData =  $this->hba1cData($results->toArray());
+        $normalData = $this->filterNormalRecordsByHb1ac($results->toArray());
+        $prediabetesData = $this->filterPreDiabetesRecordsByHb1ac($results->toArray());
+        $diabetesData = $this->filterDiabeticRecordsByHb1ac($results->toArray());
+
+
         $finalHba1cData = $this->hba1cData($results->toArray());
         $statisticsHba1cData = $this->statisticsHb1ac($results->toArray());
-        $demographicHba1cData = $this->demographicsHb1ac($results->toArray());
+        $demographicHba1cData = [
+            'all' => $this->demographicsHb1ac($allData),
+            'normal' => $this->demographicsHb1ac($normalData),
+            'prediabetes' => $this->demographicsHb1ac($prediabetesData),
+            'diabetes' => $this->demographicsHb1ac($diabetesData)
+        ];
 
         //  dd($meanHba1cData);
 
@@ -93,18 +104,18 @@ class Hb1acControllerCopy extends Controller
     private function statisticsHb1ac(array $data)
     {
         $allResults = $this->hba1cData($data);
-    
+
         $statistics = [];
         $normalStatistics = [];
         $prediabetesStatistics = [];
         $diabetesStatistics = [];
-    
+
         foreach ($allResults as $recordId => $visits) {
             $validHb1acValues = [];
-    
+
             foreach ($visits as $visit) {
                 $hb1acValue = $visit['hb1ac'];
-    
+
                 // Check if the value is numeric or can be converted to a float
                 if (is_numeric($hb1acValue)) {
                     $validHb1acValues[] = (float)$hb1acValue;
@@ -120,21 +131,21 @@ class Hb1acControllerCopy extends Controller
                     }
                 }
             }
-    
+
             // Calculate statistics only if there are valid values
             if (!empty($validHb1acValues)) {
                 $mean = array_sum($validHb1acValues) / count($validHb1acValues);
                 $max = max($validHb1acValues);
                 $min = min($validHb1acValues);
                 $count = count($validHb1acValues);
-    
+
                 // Calculate standard deviation
                 $variance = array_reduce($validHb1acValues, function ($carry, $item) use ($mean) {
                     return $carry + pow($item - $mean, 2);
                 }, 0) / $count;
-    
+
                 $stdDev = sqrt($variance);
-    
+
                 $statistics[$recordId] = [
                     'mean' => number_format($mean, 2),
                     'max' => $max,
@@ -142,7 +153,7 @@ class Hb1acControllerCopy extends Controller
                     'count' => $count,
                     'standard_deviation' => number_format($stdDev, 4),
                 ];
-    
+
                 // Distribute statistics into categories based on mean HbA1c
                 if ($mean <= 5.6) {
                     $normalStatistics[$recordId] = $statistics[$recordId];
@@ -162,7 +173,7 @@ class Hb1acControllerCopy extends Controller
                 ];
             }
         }
-    
+
         // Return structured output
         return [
             'all' => $statistics,
@@ -172,14 +183,13 @@ class Hb1acControllerCopy extends Controller
         ];
     }
 
-    private function demographicsHb1ac(array $data) 
+    private function demographicsHb1ac(array $data)
     {
-        $allResults = $this->hba1cData($data);
-    
+
         $genderStatistics = [];
         $healthFacilityStatistics = [];
         $ageGroupStatistics = [];
-    
+
         // Define age groups
         $ageGroups = [
             '0-20' => [],
@@ -187,15 +197,15 @@ class Hb1acControllerCopy extends Controller
             '41-60' => [],
             '60+' => [],
         ];
-    
-        foreach ($allResults as $records) {
+
+        foreach ($data as $records) {
             foreach ($records as $visit) {
                 // Convert hb1ac to float
                 $hb1ac = (float)str_replace(',', '.', $visit['hb1ac']);
                 $gender = $visit['gender'] ?? 'Unknown'; // Handle unknown gender
                 $healthFacility = $visit['health_facility'] ?? 'Unknown'; // Handle unknown facility
                 $age = (int)($visit['age'] ?? 0); // Default to 0 if age is not set
-    
+
                 // Update gender statistics
                 if (!isset($genderStatistics[$gender])) {
                     $genderStatistics[$gender] = [
@@ -210,7 +220,7 @@ class Hb1acControllerCopy extends Controller
                 $genderStatistics[$gender]['total'] += $hb1ac;
                 $genderStatistics[$gender]['max'] = max($genderStatistics[$gender]['max'], $hb1ac);
                 $genderStatistics[$gender]['min'] = min($genderStatistics[$gender]['min'], $hb1ac);
-    
+
                 // Update health facility statistics
                 if (!isset($healthFacilityStatistics[$healthFacility])) {
                     $healthFacilityStatistics[$healthFacility] = [
@@ -221,12 +231,12 @@ class Hb1acControllerCopy extends Controller
                         'total' => 0,
                     ];
                 }
-                
+
                 $healthFacilityStatistics[$healthFacility]['count']++;
                 $healthFacilityStatistics[$healthFacility]['total'] += $hb1ac;
                 $healthFacilityStatistics[$healthFacility]['max'] = max($healthFacilityStatistics[$healthFacility]['max'], $hb1ac);
                 $healthFacilityStatistics[$healthFacility]['min'] = min($healthFacilityStatistics[$healthFacility]['min'], $hb1ac);
-    
+
                 // Update age group statistics
                 if ($age <= 20) {
                     $ageGroup = '0-20';
@@ -237,7 +247,7 @@ class Hb1acControllerCopy extends Controller
                 } else {
                     $ageGroup = '60+';
                 }
-    
+
                 if (!isset($ageGroupStatistics[$ageGroup])) {
                     $ageGroupStatistics[$ageGroup] = [
                         'mean' => 0,
@@ -253,84 +263,137 @@ class Hb1acControllerCopy extends Controller
                 $ageGroupStatistics[$ageGroup]['min'] = min($ageGroupStatistics[$ageGroup]['min'], $hb1ac);
             }
         }
-    
+
         // Calculate mean for each category
         foreach ($genderStatistics as $key => $stats) {
             if ($stats['count'] > 0) {
                 $genderStatistics[$key]['mean'] = number_format(($stats['total'] / $stats['count']), 2);
             }
         }
-    
+
         foreach ($healthFacilityStatistics as $key => $stats) {
             if ($stats['count'] > 0) {
                 $healthFacilityStatistics[$key]['mean'] = number_format(($stats['total'] / $stats['count']), 2);
             }
         }
-    
+
         foreach ($ageGroupStatistics as $key => $stats) {
             if ($stats['count'] > 0) {
                 $ageGroupStatistics[$key]['mean'] = number_format(($stats['total'] / $stats['count']), 2);
             }
         }
-    
-        // Initialize categorized statistics
-        $genderNormalStatistics = $genderPreStatistics = $genderDiabetesStatistics = [];
-        $ageGroupNormalStatistics = $agePreGroupStatistics = $ageGroupDiabetesStatistics = [];
-        $healthFacilityNormalStatistics = $healthFacilityPreStatistics = $healthFacilityDiabetesStatistics = [];
-    
-        // Distribute statistics into categories
-        foreach ($genderStatistics as $key => $stats) {
-            if ($stats['mean'] <= 5.6) {
-                $genderNormalStatistics[$key] = $stats;
-            } elseif ($stats['mean'] <= 6.4) {
-                $genderPreStatistics[$key] = $stats;
-            } else {
-                $genderDiabetesStatistics[$key] = $stats;
-            }
-        }
-    
-        foreach ($ageGroupStatistics as $key => $stats) {
-            if ($stats['mean'] <= 5.6) {
-                $ageGroupNormalStatistics[$key] = $stats;
-            } elseif ($stats['mean'] <= 6.4) {
-                $agePreGroupStatistics[$key] = $stats;
-            } else {
-                $ageGroupDiabetesStatistics[$key] = $stats;
-            }
-        }
-    
-        foreach ($healthFacilityStatistics as $key => $stats) {
-            if ($stats['mean'] <= 5.6) {
-                $healthFacilityNormalStatistics[$key] = $stats;
-            } elseif ($stats['mean'] <= 6.4) {
-                $healthFacilityPreStatistics[$key] = $stats;
-            } else {
-                $healthFacilityDiabetesStatistics[$key] = $stats;
-            }
-        }
-    
+
+
         // Return structured output
         return [
-            'all' => [
-                'genderStatistics' => $genderStatistics,
-                'ageStatistics' => $ageGroupStatistics,
-                'healthFacility' => $healthFacilityStatistics,
-            ],
-            'normal' => [
-                'genderStatistics' => $genderNormalStatistics,
-                'ageStatistics' => $ageGroupNormalStatistics,
-                'healthFacility' => $healthFacilityNormalStatistics,
-            ],
-            'prediabetes' => [
-                'genderStatistics' => $genderPreStatistics,
-                'ageStatistics' => $agePreGroupStatistics,
-                'healthFacility' => $healthFacilityPreStatistics,
-            ],
-            'diabetes' => [
-                'genderStatistics' => $genderDiabetesStatistics,
-                'ageStatistics' => $ageGroupDiabetesStatistics,
-                'healthDiabetes' => $healthFacilityDiabetesStatistics,
-            ],
+            'genderStatistics' => $genderStatistics,
+            'ageStatistics' => $ageGroupStatistics,
+            'healthFacility' => $healthFacilityStatistics
         ];
+    }
+
+
+    ///filter normal hb
+    private function filterNormalRecordsByHb1ac($data)
+    {
+
+        $allData = $this->hba1cData($data);
+
+        $filteredRecords = [];
+
+        foreach ($allData as $key => $records) {
+            // Ensure $records is an array
+            if (is_array($records)) {
+                // If the record is a single entry, wrap it in an array
+                if (isset($records['hb1ac'])) {
+                    $records = [$records];
+                }
+
+                // Calculate the average hb1ac
+                $totalHb1ac = 0;
+                $count = count($records);
+
+                foreach ($records as $record) {
+                    $totalHb1ac += (float)$record['hb1ac'];
+                }
+
+                $averageHb1ac = $totalHb1ac / $count;
+
+                // Check if the average is less than 6.5
+                if ($averageHb1ac <= 5.6) {
+                    $filteredRecords[$key] = $records;
+                }
+            }
+        }
+
+        return $filteredRecords;
+    }
+
+    private function filterPreDiabetesRecordsByHb1ac($data)
+    {
+        $filteredRecords = [];
+
+        $allData = $this->hba1cData($data);
+
+        foreach ($allData as $key => $records) {
+            // Ensure $records is an array
+            if (is_array($records)) {
+                // If the record is a single entry, wrap it in an array
+                if (isset($records['hb1ac'])) {
+                    $records = [$records];
+                }
+
+                // Calculate the average hb1ac
+                $totalHb1ac = 0;
+                $count = count($records);
+
+                foreach ($records as $record) {
+                    $totalHb1ac += (float)$record['hb1ac'];
+                }
+
+                $averageHb1ac = $totalHb1ac / $count;
+
+                // Check if the average is between 5.7 and 6.4
+                if ($averageHb1ac > 5.6 && $averageHb1ac <= 6.4) {
+                    $filteredRecords[$key] = $records;
+                }
+            }
+        }
+
+        return $filteredRecords;
+    }
+
+    private function filterDiabeticRecordsByHb1ac($data)
+    {
+        $filteredRecords = [];
+
+        $allData = $this->hba1cData($data);
+
+        foreach ($allData as $key => $records) {
+            // Ensure $records is an array
+            if (is_array($records)) {
+                // If the record is a single entry, wrap it in an array
+                if (isset($records['hb1ac'])) {
+                    $records = [$records];
+                }
+
+                // Calculate the average hb1ac
+                $totalHb1ac = 0;
+                $count = count($records);
+
+                foreach ($records as $record) {
+                    $totalHb1ac += (float)$record['hb1ac'];
+                }
+
+                $averageHb1ac = $totalHb1ac / $count;
+
+                // Check if the average is less than 6.5
+                if ($averageHb1ac > 6.4) {
+                    $filteredRecords[$key] = $records;
+                }
+            }
+        }
+
+        return $filteredRecords;
     }
 }

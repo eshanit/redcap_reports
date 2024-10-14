@@ -10,24 +10,23 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Inertia\Inertia;
 
-class AppointmentsReviewController extends Controller
+class AppointmentsReviewControllerEventsBased extends Controller
 {
     public function __invoke(string $id)
     {
         $project = Project::select('project_id', 'app_title')->findOrFail($id);
         $results = ProjectData::where('project_id', $id)
-            // ->addSelect([
-            //     'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data3.event_id')
-            // ])
+            ->addSelect([
+                'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data3.event_id')
+            ])
             ->whereIn('field_name', ['ncd_visit_date', 'ncd_next_review', 'ncd_tel_pat', 'ncd_tel_kin', 'ncd_health_facility'])
             ->get()
             ->groupBy('record')
             ->map(function ($group) {
-                return $group->groupBy('instance')->map(function ($eventGroup) {
+                return $group->groupBy('event_id')->map(function ($eventGroup) {
                     return [
                         'event_id' => $eventGroup->pluck('event_id')->first(),
-                        //'visit' => $eventGroup->pluck('event')->first(),
-                        'event' => $eventGroup->pluck('instance')->first() ?? 1, // using instance as visit
+                        'event' => $eventGroup->pluck('event')->first(),
                         'ncd_health_facility' => $eventGroup->where('field_name', 'ncd_health_facility')->pluck('value')->first(),
                         'ncd_visit_date' => $eventGroup->where('field_name', 'ncd_visit_date')->pluck('value')->first(),
                         'ncd_next_review' => $eventGroup->where('field_name', 'ncd_next_review')->pluck('value')->first(),
@@ -57,17 +56,17 @@ class AppointmentsReviewController extends Controller
       
            // return $clonedGroups;
            // dd($clonedGroups);
-           // $shifted = $clonedGroups->shift(); // Remove the first element
+            $shifted = $clonedGroups->shift(); // Remove the first element
 
             $dates = $clonedGroups->pluck('ncd_visit_date')->prepend('');
 
             if ($clonedGroups->count() > 2) {
-                //$popped = $clonedGroups->pop(); // Remove the last element
+                $popped = $clonedGroups->pop(); // Remove the last element
 
                 $clonedGroups->pluck('ncd_visit_date')->push('');
             };
 
-            return $clonedGroups->pluck('ncd_visit_date'); // Return proposed dates
+            return $dates; // Return proposed dates
 
         });
 
@@ -82,7 +81,7 @@ class AppointmentsReviewController extends Controller
       
            // return $clonedGroups;
            // dd($clonedGroups);
-            //$shifted = $clonedGroups->shift(); // Remove the first element
+            $shifted = $clonedGroups->shift(); // Remove the first element
 
             $dates = $clonedGroups->pluck('ncd_next_review')->prepend('');
 
@@ -96,9 +95,9 @@ class AppointmentsReviewController extends Controller
 
         });
 
-        $resultsActualDates = $resultsCurrentVisitDates;
 
-        $resultsActualDatesx = $results->map(function ($eventGroups) {
+
+        $resultsActualDates = $results->map(function ($eventGroups) {
             // Clone the event groups
             $clonedGroups = $eventGroups->map(function ($group) {
                 return collect($group); // Create a clone of each group

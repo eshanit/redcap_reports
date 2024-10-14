@@ -26,9 +26,9 @@ const getStatusClass = (params: any) => {
 const columnDefs = ref([
     { headerName: 'Record', field: 'record', sortable: true, filter: true },
     { headerName: 'Event', field: 'event', sortable: true, filter: true },
-    { headerName: 'Visit Dates', field: 'visit_dates', sortable: true, filter: true },
-    { headerName: 'Proposed Dates', field: 'proposed_dates', sortable: true, filter: true },
-    { headerName: 'Actual Dates', field: 'actual_dates', sortable: true, filter: true },
+    // { headerName: 'Visit Dates', field: 'visit_dates', sortable: true, filter: true },
+    { headerName: 'Prev Proposed Date', field: 'proposed_dates', sortable: true, filter: true },
+    { headerName: 'Actual Visit Date', field: 'actual_dates', sortable: true, filter: true },
     { headerName: 'Days Difference', field: 'days_difference', sortable: true, filter: true },
     { headerName: 'Human Readable', field: 'human_readable', sortable: true, filter: true },
     { headerName: 'Status', field: 'status', sortable: true, filter: true, cellClass: getStatusClass }

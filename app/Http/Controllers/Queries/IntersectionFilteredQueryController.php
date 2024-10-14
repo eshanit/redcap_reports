@@ -21,7 +21,7 @@ class IntersectionFilteredQueryController extends Controller
     {
         $project = Project::query()->select('project_id', 'app_title')->findOrFail($projectId);
         $query = ProjectData::where('project_id', $projectId)->addSelect([
-            'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data.event_id')
+            'event' => ProjectEventMetadata::select('descrip')->whereColumn('event_id', 'redcap_data3.event_id')
         ]);
 
         $intersectionResults = [];
